@@ -20,6 +20,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* 儲存引導小手動畫 */
         @keyframes handPulse {
             0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
             50% { transform: translateY(8px) scale(0.9); opacity: 0.7; }
@@ -28,6 +29,7 @@
             animation: handPulse 1.5s infinite ease-in-out;
         }
 
+        /* 願望圖示漂浮動態 */
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-12px); }
@@ -40,6 +42,13 @@
         .font-serif {
             font-family: 'Noto Serif TC', serif;
         }
+
+        /* 支援手機長按選單 */
+        .saveable-image {
+            -webkit-touch-callout: default !important;
+            user-select: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -51,11 +60,15 @@
         // ============================================================
         // 🖼️ 圖片連結定義區：請在此處更換您的 PNG 圖片網址
         // ============================================================
-        const HEADER_IMG_URL = "https://raw.githubusercontent.com/belovedraod/test-newyear01/refs/heads/main/new_horse.png"; 
-        const CORNER_TOP_LEFT     = "https://img.freepik.com/free-vector/gold-ingot-cartoon-vector-icon-illustration-wealth-concept-isolated-premium-vector_138676-5412.jpg"; 
-        const CORNER_TOP_RIGHT    = "https://img.freepik.com/free-vector/cute-horse-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; 
-        const CORNER_BOTTOM_LEFT  = "https://raw.githubusercontent.com/belovedraod/test-newyear01/refs/heads/main/new_horse-left.png"; 
-        const CORNER_BOTTOM_RIGHT = "https://raw.githubusercontent.com/belovedraod/test-newyear01/refs/heads/main/new_horse-right.png"; 
+        // 1. 第一頁最上方的插圖
+        const HEADER_IMG_URL = "https://img.freepik.com/free-vector/cute-horse-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; 
+        
+        // 2. 賀卡生成的四個角落小插圖 (PNG 透明底效果最佳)
+        // 依照要求：金元寶移至左上，底部兩側放大 1.5 倍
+        const CORNER_TOP_LEFT     = "https://img.freepik.com/free-vector/gold-ingot-cartoon-vector-icon-illustration-wealth-concept-isolated-premium-vector_138676-5412.jpg"; // 左上 (金元寶剪影)
+        const CORNER_TOP_RIGHT    = "https://img.freepik.com/free-vector/cute-horse-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; // 右上
+        const CORNER_BOTTOM_LEFT  = "https://img.freepik.com/free-vector/cute-bird-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; // 左下 (放大 1.5 倍)
+        const CORNER_BOTTOM_RIGHT = "https://img.freepik.com/free-vector/sun-icon-vector-isolated-white-background_138676-5412.jpg";                                                     // 右下 (放大 1.5 倍)
         // ============================================================
 
         const Icon = ({ name, size = 24, className = "" }) => {
@@ -153,33 +166,51 @@
                 canvas.width = 1000;
                 canvas.height = 1800;
 
+                // 1. 底層
                 ctx.fillStyle = '#fdfbf7'; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
+                // 2. 主背景
                 ctx.save();
                 ctx.globalAlpha = 0.95; ctx.fillStyle = '#C8102E'; 
                 drawHandDrawnRect(ctx, 40, 40, 920, 1720, 60);
                 ctx.fill(); ctx.restore();
 
+                // 3. 手繪金邊
                 ctx.strokeStyle = 'rgba(253, 230, 138, 0.7)'; ctx.lineWidth = 12; ctx.setLineDash([20, 15]);
                 drawHandDrawnRect(ctx, 70, 70, 860, 1660, 40); ctx.stroke(); ctx.setLineDash([]);
 
+                // 4. 使用者照片
                 if (images.user) {
                     const photoX = 100, photoY = 130, photoW = 800, photoH = 750;
                     ctx.save(); drawHandDrawnRect(ctx, photoX, photoY, photoW, photoH, 50); ctx.clip();
                     const imgRatio = images.user.width / images.user.height;
                     const targetRatio = photoW / photoH;
                     let dW, dH, dX, dY;
-                    if (imgRatio > targetRatio) { dH = photoH; dW = images.user.width * (photoH / images.user.height); dX = photoX - (dW - photoW) / 2; dY = photoY; }
+                    if (imgRatio > targetRatio) { dW = images.user.width * (photoH / images.user.height); dH = photoH; dX = photoX - (dW - photoW) / 2; dY = photoY; }
                     else { dW = photoW; dH = images.user.height * (photoW / images.user.width); dX = photoX; dY = photoY - (dH - photoH) / 2; }
                     ctx.drawImage(images.user, dX, dY, dW, dH); ctx.restore();
                 }
 
-                ctx.fillStyle = '#FDE68A'; ctx.textAlign = 'center';
-                ctx.font = 'bold 95px "Noto Serif TC", serif'; ctx.fillText(randomBlessing, 500, 1050);
-                ctx.font = '38px sans-serif'; ctx.fillText(`2026 丙午馬年 · 願您${selectedWish.label}如意`, 500, 1140);
-                if (userName) { ctx.font = 'bold 50px "Noto Serif TC", serif'; ctx.fillText(`${userName} 敬賀`, 500, 1230); }
+                // 5. 文字繪製 (確保橫向對齊)
+                ctx.fillStyle = '#FDE68A'; 
+                ctx.textAlign = 'center';
+                
+                // 八字祝賀詞
+                ctx.font = 'bold 95px "Noto Serif TC", serif'; 
+                ctx.fillText(randomBlessing, 500, 1050);
+                
+                // 年份標示 (字級加 2)
+                ctx.font = '42px sans-serif'; 
+                ctx.fillText(`2026 丙午馬年 · 願您${selectedWish.label}如意`, 500, 1140);
+                
+                // 署名 (確保橫向對齊)
+                if (userName) { 
+                    ctx.font = 'bold 50px "Noto Serif TC", serif'; 
+                    ctx.fillText(`${userName} 敬賀`, 500, 1230); 
+                }
 
+                // 6. 角落插圖 (底部放大 1.5 倍)
                 const normSize = 120;
                 const largeSize = 180; 
                 if (images.tl) ctx.drawImage(images.tl, 100, 100, normSize, normSize);
@@ -189,6 +220,7 @@
                 if (images.bl) ctx.drawImage(images.bl, 80, decoY, largeSize, largeSize);
                 if (images.br) ctx.drawImage(images.br, 740, decoY, largeSize, largeSize);
 
+                // 7. 吉祥印章
                 const stampY = 1400;
                 const filteredPhrases = luckPhrases.filter(p => !randomBlessing.includes(p));
                 const luckText = filteredPhrases[Math.floor(Math.random() * filteredPhrases.length)] || "馬到成功";
@@ -197,6 +229,7 @@
                 ctx.fillText(luckText[0], 480, stampY - 5); ctx.fillText(luckText[1], 520, stampY - 5);
                 ctx.fillText(luckText[2], 480, stampY + 35); ctx.fillText(luckText[3], 520, stampY + 35);
 
+                // 8. 基金會頁尾資訊 (色碼 #e6e39c)
                 const footerY = 1600;
                 ctx.fillStyle = '#e6e39c';
                 ctx.font = 'bold 32px sans-serif'; ctx.fillText("© 2026 愛盟家庭文教基金會", 500, footerY);
@@ -205,18 +238,12 @@
 
             function drawHandDrawnRect(ctx, x, y, w, h, r) {
                 const jitter = () => (Math.random() * 4 - 2); 
-                const startX = x + r;
-                const startY = y;
-                ctx.beginPath();
-                ctx.moveTo(startX, startY);
-                ctx.lineTo(x + w - r + jitter(), y + jitter());
-                ctx.quadraticCurveTo(x + w, y, x + w + jitter(), y + r + jitter());
-                ctx.lineTo(x + w + jitter(), y + h - r + jitter());
-                ctx.quadraticCurveTo(x + w, y + h, x + w - r + jitter(), y + h + jitter());
-                ctx.lineTo(x + r + jitter(), y + h + jitter());
-                ctx.quadraticCurveTo(x, y + h, x + jitter(), y + h - r + jitter());
-                ctx.lineTo(x + jitter(), y + r + jitter());
-                ctx.quadraticCurveTo(x, y, startX, startY);
+                const startX = x + r; const startY = y;
+                ctx.beginPath(); ctx.moveTo(startX, startY);
+                ctx.lineTo(x + w - r + jitter(), y + jitter()); ctx.quadraticCurveTo(x + w, y, x + w + jitter(), y + r + jitter());
+                ctx.lineTo(x + w + jitter(), y + h - r + jitter()); ctx.quadraticCurveTo(x + w, y + h, x + w - r + jitter(), y + h + jitter());
+                ctx.lineTo(x + r + jitter(), y + h + jitter()); ctx.quadraticCurveTo(x, y + h, x + jitter(), y + h - r + jitter());
+                ctx.lineTo(x + jitter(), y + r + jitter()); ctx.quadraticCurveTo(x, y, startX, startY);
                 ctx.closePath();
             }
 
@@ -226,11 +253,19 @@
                 ctx.closePath(); ctx.fill(); ctx.restore();
             }
 
-            const downloadImage = () => {
-                const link = document.createElement('a');
-                link.download = `2026馬年賀卡.png`;
-                link.href = finalImageUrl;
-                link.click();
+            const handleShare = async () => {
+                if (navigator.share) {
+                    try {
+                        const blob = await (await fetch(finalImageUrl)).blob();
+                        const file = new File([blob], '2026馬年賀卡.png', { type: 'image/png' });
+                        await navigator.share({ files: [file], title: '2026 馬年賀歲' });
+                    } catch (err) { console.log('分享已取消'); }
+                } else {
+                    const link = document.createElement('a');
+                    link.download = `2026馬年賀卡.png`;
+                    link.href = finalImageUrl;
+                    link.click();
+                }
             };
 
             return (
@@ -294,46 +329,54 @@
                                 <h2 className="text-2xl font-bold text-center text-red-900 flex items-center justify-center gap-2 font-serif"><Icon name="sparkles" size={24} className="text-yellow-600" /> 您的馬年專屬賀卡完成囉！</h2>
                                 
                                 <div className="relative group max-w-[90%] mx-auto">
-                                    <div className="absolute -inset-1 bg-gradient-to-b from-red-100 to-red-50 rounded-[3.2rem] blur opacity-25"></div>
-                                    <div className="relative shadow-2xl rounded-[3rem] overflow-hidden bg-white border-[12px] border-white">
+                                    <div className="relative shadow-2xl rounded-[3rem] overflow-hidden bg-white border-[12px] border-white ring-1 ring-black/5">
                                         {isGenerating ? (
                                             <div className="aspect-[1000/1800] w-full flex flex-col items-center justify-center gap-4 bg-slate-50/50">
                                                 <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
                                                 <p className="font-bold text-red-800 text-xl tracking-widest animate-pulse">繪製賀卡中...</p>
                                             </div>
                                         ) : (
-                                            <img src={finalImageUrl} alt="成品賀卡" className="w-full h-auto block" style={{ WebkitTouchCallout: 'default' }} />
+                                            <img src={finalImageUrl} alt="成品賀卡" className="w-full h-auto block saveable-image" />
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="space-y-6">
-                                    <button onClick={downloadImage} className="w-full bg-red-700 text-yellow-50 py-6 rounded-[2.2rem] text-2xl font-bold shadow-xl flex items-center justify-center gap-4 hover:bg-red-800 active:scale-95 transition-all"><Icon name="download" size={28} /> 儲存到手機</button>
-
-                                    <div className="relative overflow-hidden bg-yellow-50/80 border-2 border-dashed border-yellow-300 rounded-[2.5rem] p-8 text-center shadow-inner">
-                                        <div className="relative z-10 flex flex-col items-center gap-3">
-                                            <div className="bg-yellow-400 text-white p-3 rounded-full animate-hand"><Icon name="mouse-pointer-2" size={28} /></div>
-                                            <div className="space-y-1">
-                                                <p className="text-yellow-950 text-xl font-bold">小秘訣：長按上方圖片</p>
-                                                <p className="text-yellow-800 text-lg leading-relaxed">彈出選單後點選「儲存影像」<br/>即可分享到 <b>LINE</b> 群組與親友拜年！</p>
-                                            </div>
-                                        </div>
+                                <div className="space-y-6 flex flex-col items-center w-full px-2">
+                                    {/* 儲存提示框 */}
+                                    <div className="w-full bg-[#fefce8] border-2 border-dashed border-[#fde047] rounded-[2.5rem] p-6 text-center space-y-2">
+                                        <div className="flex justify-center"><Icon name="hand" size={32} className="text-[#854d0e] animate-hand" /></div>
+                                        <p className="text-[#451a03] text-xl font-bold tracking-wider">【長按上方圖片】即可儲存到相簿</p>
+                                        <p className="text-[#854d0e] text-lg">儲存後就可以傳給 LINE 親友囉！</p>
                                     </div>
 
-                                    <button onClick={() => {setStep(1); setUserName(''); setFinalImageUrl('');}} className="w-full text-slate-400 font-bold text-xl py-4 hover:text-red-700 transition-colors flex items-center justify-center gap-2"><Icon name="refresh-cw" size={20} /> 製作另一張賀年卡</button>
+                                    {/* 🚀 綠色分享按鈕 (與截圖顏色、陰影一致) */}
+                                    <button 
+                                        onClick={handleShare}
+                                        className="w-full bg-[#449144] text-white py-6 rounded-[2.5rem] text-2xl font-bold shadow-[0_6px_0_0_#2d6a2d] active:shadow-none active:translate-y-1 transition-all flex items-center justify-center gap-3"
+                                    >
+                                        <Icon name="share-2" size={28} /> 直接分享給親友
+                                    </button>
+
+                                    {/* 🚀 再做一張按鈕 (Slate Link) */}
+                                    <button 
+                                        onClick={() => {setStep(1); setUserName(''); setFinalImageUrl('');}} 
+                                        className="text-[#475569] font-bold text-2xl py-4 tracking-[0.1em] hover:text-red-700 transition-colors"
+                                    >
+                                        再做一張賀年卡
+                                    </button>
                                 </div>
                             </div>
                         )}
                     </main>
 
-                    <footer className="mt-12 px-8 max-w-xl mx-auto opacity-70 text-center space-y-4 pb-20">
-                        <div className="h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
-                        <div className="space-y-3">
-                            <p className="text-slate-500 font-light text-lg italic tracking-wider">2026 丙午馬年 · 祥馬獻瑞 · 萬事大吉</p>
-                            <div className="text-slate-400 font-light text-lg italic space-y-1">
-                                <p>© 2026 愛盟家庭文教基金會</p>
-                                <p>為愛學習持續練習，是一件幸福的事</p>
-                            </div>
+                    <footer className="mt-16 px-8 max-w-xl mx-auto opacity-70 text-center space-y-6 pb-20">
+                        <div className="h-px bg-slate-200 w-full"></div>
+                        <p className="text-slate-500 font-light text-xl italic tracking-widest">
+                            2026 丙午馬年 · 祥馬獻瑞 · 馬到成功
+                        </p>
+                        <div className="text-slate-400 font-light text-xl space-y-1">
+                            <p>© 2026 愛盟家庭文教基金會</p>
+                            <p>為愛學習持續練習，是一件幸福的事</p>
                         </div>
                     </footer>
                 </div>
