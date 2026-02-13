@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026 丙午馬年賀歲 - 愛盟家庭文教基金會</title>
-    <!-- 載入必要 CDN 套件 -->
+    <!-- 載入必要套件 CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -12,48 +12,53 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
-        /* 載入 Noto Sans TC 用於現代感黑體設計 */
+        /* 載入 Noto Sans TC 確保質感與截圖一致 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
         
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #fcf8f2;
             -webkit-tap-highlight-color: transparent;
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
         }
 
-        /* 儲存引導小手動畫 */
+        /* 儲存提示動畫 */
         @keyframes handPulse {
             0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
-            50% { transform: translateY(5px) scale(0.9); opacity: 0.8; }
+            50% { transform: translateY(8px) scale(0.9); opacity: 0.8; }
         }
         .animate-hand {
             animation: handPulse 1.5s infinite ease-in-out;
         }
 
-        /* 願望圖示漂浮動態 */
+        /* 介面插圖漂浮動態 */
         @keyframes float {
             0% { transform: translateY(0px); }
-            50% { transform: translateY(-12px); }
+            50% { transform: translateY(-10px); }
             100% { transform: translateY(0px); }
         }
         .animate-float {
             animation: float 3s ease-in-out infinite;
         }
 
-        /* 支援手機長按選單 */
+        /* 支援手機長按存圖 */
         .saveable-image {
             -webkit-touch-callout: default !important;
             user-select: none;
             cursor: pointer;
             width: 100%;
             display: block;
+            border-radius: 2rem;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
         }
 
-        /* 隱藏畫布防止干擾佈局 */
+        /* 背景渲染畫布定位 */
         #render-canvas {
-            display: none;
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            opacity: 0.01;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -64,21 +69,22 @@
         const { useState, useRef, useEffect } = React;
 
         // ============================================================
-        // 🖼️ 圖片連結定義區
+        // 🖼️ 圖片連結定義區 (您可以在此替換所有圖檔)
         // ============================================================
-        const HEADER_IMG_URL = "https://github.com/belovedraod/HorseYearsCard/blob/main/new_horse.png?raw=true"; 
         
-        // 賀卡角落 (依要求：左上元寶，底部放大 1.5 倍 = 180px)
-        const CORNER_TOP_LEFT     = "https://github.com/belovedraod/HorseYearsCard/blob/main/new_horse.png?raw=true"; 
-        const CORNER_TOP_RIGHT    = "https://img.freepik.com/free-vector/cute-horse-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; 
-        const CORNER_BOTTOM_LEFT  = "https://github.com/belovedraod/HorseYearsCard/blob/main/new_horse-left.png?raw=true"; 
-        const CORNER_BOTTOM_RIGHT = "https://github.com/belovedraod/HorseYearsCard/blob/main/new_horse-right.png?raw=true"; 
+        // 1. 第一頁介面上方與 Header 的馬兒圖片
+        const HEADER_IMG_URL = "https://img.freepik.com/free-vector/cute-horse-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; 
+
+        // 2. 賀卡左下方的裝飾圖檔連結
+        const LEFT_DECO_IMG_URL = "https://img.freepik.com/free-vector/gold-ingot-cartoon-vector-icon-illustration-wealth-concept-isolated-premium-vector_138676-5412.jpg"; 
+
+        // 3. 賀卡右下方的裝飾圖檔連結
+        const RIGHT_DECO_IMG_URL = "https://img.freepik.com/free-vector/gold-ingot-cartoon-vector-icon-illustration-wealth-concept-isolated-premium-vector_138676-5412.jpg"; 
+
         // ============================================================
 
         const Icon = ({ name, size = 24, className = "" }) => {
-            useEffect(() => {
-                if (window.lucide) lucide.createIcons();
-            }, [name]);
+            useEffect(() => { if (window.lucide) lucide.createIcons(); }, [name]);
             return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
         };
 
@@ -92,9 +98,7 @@
             const [finalImageUrl, setFinalImageUrl] = useState('');
             const canvasRef = useRef(null);
 
-            const luckPhrases = ["馬到成功", "龍馬精神", "一馬當先", "萬馬奔騰", "祥馬獻瑞", "金馬迎春", "馬運亨通", "馬到福隨"];
-
-            const wishPool = [
+            const wishes = [
                 { id: 'wealth', label: '財富', color: '#FEF3C7', icon: "coins", blessings: ["馬上有錢 財源廣進", "駿馬報喜 財庫充盈", "金馬銜寶 萬事大吉", "財氣亨通 馬運當頭"] },
                 { id: 'career', label: '事業', color: '#DBEAFE', icon: "briefcase", blessings: ["馬到成功 鴻圖大展", "驍勇如馬 業績長紅", "策馬揚鞭 步步高升", "萬馬奔騰 旗開得勝"] },
                 { id: 'health', label: '健康', color: '#DCFCE7', icon: "activity", blessings: ["龍馬精神 身體健康", "活力如馬 壽比南山", "祥馬獻瑞 闔家安康", "龍馬壯健 福氣連連"] },
@@ -129,105 +133,123 @@
                         const loadImage = (src) => {
                             return new Promise((resolve) => {
                                 const img = new Image();
-                                img.crossOrigin = "anonymous";
+                                img.crossOrigin = "anonymous"; 
                                 img.src = src;
                                 img.onload = () => resolve(img);
                                 img.onerror = () => resolve(null);
                             });
                         };
 
-                        const [userImg, tl, tr, bl, br] = await Promise.all([
+                        const [userImg, leftDeco, rightDeco] = await Promise.all([
                             loadImage(userImage),
-                            loadImage(CORNER_TOP_LEFT),
-                            loadImage(CORNER_TOP_RIGHT),
-                            loadImage(CORNER_BOTTOM_LEFT),
-                            loadImage(CORNER_BOTTOM_RIGHT)
+                            loadImage(LEFT_DECO_IMG_URL),
+                            loadImage(RIGHT_DECO_IMG_URL)
                         ]);
 
-                        drawFinalCard(ctx, canvas, { user: userImg, tl, tr, bl, br });
+                        drawFinalCard(ctx, canvas, userImg, leftDeco, rightDeco);
                         
-                        // 🚀 優化檔案大小：採用 PNG 並控制數據
-                        const dataUrl = canvas.toDataURL('image/png');
-                        setFinalImageUrl(dataUrl);
-                        setIsGenerating(false);
+                        setTimeout(() => {
+                            const dataUrl = canvas.toDataURL('image/png');
+                            setFinalImageUrl(dataUrl);
+                            setIsGenerating(false);
+                        }, 1200);
                     }
                 };
                 generateCard();
             }, [step, selectedWish, userImage, randomBlessing, userName]);
 
-            const drawFinalCard = (ctx, canvas, images) => {
+            const drawFinalCard = (ctx, canvas, userImg, leftDeco, rightDeco) => {
                 canvas.width = 1000;
-                canvas.height = 1800;
+                canvas.height = 2000;
 
-                // 1. 底層
+                // 1. 底層宣紙
                 ctx.fillStyle = '#fdfbf7'; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // 2. 紅色背景 (固定路徑確保對齊)
+                // 2. 紅色背景
                 ctx.save();
                 ctx.globalAlpha = 0.95; ctx.fillStyle = '#C8102E'; 
-                drawRect(ctx, 40, 40, 920, 1720, 60);
-                ctx.fill(); ctx.restore();
+                drawRect(ctx, 40, 40, 920, 1920, 60);
+                ctx.fill(); 
+                ctx.restore();
 
-                // 3. 金邊框
+                // 3. 金色虛線框
+                ctx.save();
                 ctx.strokeStyle = 'rgba(253, 230, 138, 0.7)'; ctx.lineWidth = 12; ctx.setLineDash([20, 15]);
-                drawRect(ctx, 70, 70, 860, 1660, 40); ctx.stroke(); ctx.setLineDash([]);
+                drawRect(ctx, 70, 70, 860, 1860, 40); ctx.stroke(); 
+                ctx.restore();
 
-                // 4. 照片裁切
-                if (images.user) {
+                // 4. 使用者照片裁切
+                if (userImg) {
                     const px = 100, py = 130, pw = 800, ph = 750;
-                    ctx.save(); drawRect(ctx, px, py, pw, ph, 50); ctx.clip();
-                    const ratio = images.user.width / images.user.height;
+                    ctx.save(); 
+                    drawRect(ctx, px, py, pw, ph, 50); 
+                    ctx.clip(); 
+                    const ratio = userImg.width / userImg.height;
                     const target = pw / ph;
                     let dW, dH, dX, dY;
-                    if (ratio > target) { dW = images.user.width * (ph / images.user.height); dH = ph; dX = px - (dW - pw) / 2; dY = py; }
-                    else { dW = pw; dH = images.user.height * (pw / images.user.width); dX = px; dY = py - (dH - ph) / 2; }
-                    ctx.drawImage(images.user, dX, dY, dW, dH); ctx.restore();
+                    if (ratio > target) { dW = userImg.width * (ph / userImg.height); dH = ph; dX = px - (dW - pw) / 2; dY = py; }
+                    else { dW = pw; dH = userImg.height * (pw / userImg.width); dX = px; dY = py - (dH - ph) / 2; }
+                    ctx.drawImage(userImg, dX, dY, dW, dH); 
+                    ctx.restore(); 
                 }
 
-                // 5. 文字繪製 - 🚀 執行黑體與絕對水平對齊
+                // 🚀 核心：強行重置繪圖狀態
+                ctx.setTransform(1, 0, 0, 1, 0, 0); 
+                ctx.beginPath();
+                ctx.globalAlpha = 1.0;
+                ctx.setLineDash([]);
+                ctx.globalCompositeOperation = 'source-over';
+
+                // 5. 文字繪製
                 ctx.fillStyle = '#FDE68A'; 
                 ctx.textAlign = 'center';
                 
-                // 八字祝賀詞 (Bold 黑體)
+                // 八字賀詞
                 ctx.font = 'bold 95px "Noto Sans TC", sans-serif'; 
                 ctx.fillText(randomBlessing, 500, 1050);
                 
-                // 2026 丙午馬年 (放大至 44px)
+                // 2026 丙午馬年
                 ctx.font = 'bold 44px "Noto Sans TC", sans-serif'; 
                 ctx.fillText(`2026 丙午馬年 · 願您${selectedWish.label}如意`, 500, 1140);
                 
-                // 使用者署名 (水平對齊)
+                // 署名
                 if (userName) { 
                     ctx.font = 'bold 52px "Noto Sans TC", sans-serif'; 
                     ctx.fillText(`${userName} 敬賀`, 500, 1230); 
                 }
 
-                // 6. 角落插圖 (底部放大 1.5 倍 = 180px)
-                const small = 120;
-                const large = 180; 
-                if (images.tl) ctx.drawImage(images.tl, 100, 100, small, small);
-                if (images.tr) ctx.drawImage(images.tr, 780, 100, small, small);
-                
-                const bottomY = 1450; 
-                if (images.bl) ctx.drawImage(images.bl, 80, bottomY, large, large);
-                if (images.br) ctx.drawImage(images.br, 740, bottomY, large, large);
+                // 🚀 核心變更：左右巨大的八角裝飾 (半徑 105px)，已移除 Emoji
+                // 左側裝飾
+                drawSeal(ctx, 220, 1400, 105, '#FDE68A');
+                // 右側裝飾
+                drawSeal(ctx, 780, 1550, 105, '#FDE68A');
 
-                // 7. 印章
-                const stampY = 1400;
-                const luckText = luckPhrases.filter(p => !randomBlessing.includes(p))[0] || "馬到成功";
+                // 6. 🚀 左右自定義插圖繪製 (尺寸 130px)
+                const iSize = 130; 
+                if (leftDeco) {
+                    ctx.drawImage(leftDeco, 50, 1550, iSize, iSize);
+                }
+                if (rightDeco) {
+                    ctx.drawImage(rightDeco, 820, 1380, iSize, iSize);
+                }
+
+                // 7. 吉祥印章 (中央底部)
+                const stampY = 1620;
+                const luckText = ["馬到成功", "龍馬精神", "一馬當先", "萬馬奔騰"].find(t => !randomBlessing.includes(t)) || "馬到成功";
                 drawSeal(ctx, 500, stampY, 70, '#FDE68A');
                 ctx.fillStyle = '#BE123C'; ctx.font = 'bold 36px "Noto Sans TC", sans-serif';
                 ctx.fillText(luckText[0], 480, stampY - 5); ctx.fillText(luckText[1], 520, stampY - 5);
                 ctx.fillText(luckText[2], 480, stampY + 35); ctx.fillText(luckText[3], 520, stampY + 35);
 
-                // 8. 基金會頁尾 (精確放大字級，顏色 #e6e39c)
-                const footerY = 1620;
+                // 8. 基金會頁尾資訊 (底部留白優化)
+                const footerY = 1820;
                 ctx.fillStyle = '#e6e39c';
                 ctx.font = 'bold 36px "Noto Sans TC", sans-serif'; 
                 ctx.fillText("© 2026 愛盟家庭文教基金會", 500, footerY);
+                
                 ctx.font = 'bold 32px "Noto Sans TC", sans-serif'; 
-                ctx.fillText("為愛學習持續練習，是一件幸福的事", 500, footerY + 55);
+                ctx.fillText("為愛學習持續練習，是一件幸福的事", 500, footerY + 65);
             };
 
             function drawRect(ctx, x, y, w, h, r) {
@@ -260,14 +282,9 @@
                 if (navigator.share && finalImageUrl) {
                     try {
                         const blob = await (await fetch(finalImageUrl)).blob();
-                        const file = new File([blob], 'NewYearCard.png', { type: 'image/png' });
-                        await navigator.share({ files: [file], title: '2026 馬年賀卡' });
+                        const file = new File([blob], 'GreetingCard2026.png', { type: 'image/png' });
+                        await navigator.share({ files: [file], title: '2026 馬年賀歲' });
                     } catch (err) { console.log('分享取消'); }
-                } else {
-                    const link = document.createElement('a');
-                    link.download = `2026馬年賀卡.png`;
-                    link.href = finalImageUrl;
-                    link.click();
                 }
             };
 
@@ -279,7 +296,7 @@
                         <div className="relative z-10 flex flex-col items-center gap-2">
                             <div className="animate-bounce">
                                 <div className="w-32 h-32 flex items-center justify-center overflow-hidden rounded-full bg-white/20 p-2 border-4 border-white/30 shadow-2xl">
-                                    <img src={HEADER_IMG_URL} alt="Header" className="max-w-full max-h-full object-contain" />
+                                    <img src={HEADER_IMG_URL} alt="Hero" className="max-w-full max-h-full object-contain" />
                                 </div>
                             </div>
                             <h1 className="text-4xl font-bold tracking-[0.2em] drop-shadow-md">2026 丙午馬年</h1>
@@ -307,7 +324,7 @@
                                 <div className="h-px bg-slate-200 w-full"></div>
                                 <h2 className="text-2xl font-bold text-center text-slate-800 mb-8 font-serif">新的一年，您的願望是？</h2>
                                 <div className="grid grid-cols-2 gap-5">
-                                    {wishPool.map((wish) => (
+                                    {wishes.map((wish) => (
                                         <button key={wish.id} onClick={() => handleSelectWish(wish)} style={{ backgroundColor: wish.color }} className="group p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border-2 border-transparent hover:border-red-400 flex flex-col items-center gap-3 relative overflow-hidden active:scale-95">
                                             <div className="mb-2 group-hover:scale-125 transition-transform animate-float"><Icon name={wish.icon} size={32} className="text-slate-600" /></div>
                                             <span className="text-2xl font-bold text-slate-800 tracking-wider">{wish.label}</span>
@@ -327,7 +344,7 @@
                                         <div className="space-y-1"><p className="text-2xl font-bold text-slate-700">點擊上傳照片</p><p className="text-slate-400 text-lg">建議選取清晰的全家福或獨照</p></div>
                                     </div>
                                 </div>
-                                <button onClick={() => setStep(1)} className="text-slate-400 hover:text-red-700 font-bold text-xl flex items-center justify-center gap-2 mx-auto"><Icon name="refresh-cw" size={20} /> 重新選願望</button>
+                                <button onClick={() => setStep(1)} className="text-slate-400 hover:text-red-700 font-bold text-xl flex items-center justify-center gap-2 mx-auto underline underline-offset-8 transition-colors"><Icon name="refresh-cw" size={20} /> 重新選願望</button>
                             </div>
                         )}
 
@@ -338,12 +355,12 @@
                                 <div className="relative group max-w-[90%] mx-auto">
                                     <div className="relative shadow-2xl rounded-[3rem] overflow-hidden bg-white border-[12px] border-white ring-1 ring-black/5">
                                         {isGenerating ? (
-                                            <div className="aspect-[1000/1800] w-full flex flex-col items-center justify-center gap-4 bg-slate-50/50">
+                                            <div className="aspect-[1000/2000] w-full flex flex-col items-center justify-center gap-4 bg-slate-50/50">
                                                 <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
                                                 <p className="font-bold text-red-800 text-xl tracking-widest animate-pulse">繪製賀卡中...</p>
                                             </div>
                                         ) : (
-                                            <img src={finalImageUrl} alt="成品賀卡" className="w-full h-auto block saveable-image" />
+                                            <img src={finalImageUrl} alt="Greeting Card" className="saveable-image" />
                                         )}
                                     </div>
                                 </div>
@@ -352,7 +369,7 @@
                                     <div className="w-full bg-[#fefce8] border-2 border-dashed border-[#fde047] rounded-[2.5rem] p-6 text-center space-y-2 shadow-inner">
                                         <div className="flex justify-center"><Icon name="hand" size={32} className="text-[#854d0e] animate-hand" /></div>
                                         <p className="text-[#451a03] text-xl font-bold tracking-wider">【長按上方圖片】即可儲存到相簿</p>
-                                        <p className="text-[#854d0e] text-lg">儲存後就可以傳給 LINE 親友囉！</p>
+                                        <p className="text-[#854d0e] text-lg font-medium">儲存後就可以傳給 LINE 親友囉！</p>
                                     </div>
 
                                     <button 
