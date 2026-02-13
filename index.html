@@ -1,0 +1,321 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Camera, Download, RefreshCw, Sparkles, Heart, Smile, Coins, Briefcase, Activity, Users, User, MousePointer2 } from 'lucide-react';
+
+// ============================================================
+// 🖼️ 圖片連結定義區：請在此處更換您的 PNG 圖片網址
+// ============================================================
+
+// 1. 第一頁介面最上方的插圖 (目前會跳動的那隻馬)
+const HEADER_IMG_URL = "https://img.freepik.com/free-vector/cute-horse-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; 
+
+// 2. 賀卡生成的四個角落小插圖 (PNG 透明底效果最佳)
+const CORNER_TOP_LEFT     = "https://img.freepik.com/free-vector/gold-ingot-cartoon-vector-icon-illustration-wealth-concept-isolated-premium-vector_138676-5412.jpg"; // 左上 (金元寶)
+const CORNER_TOP_RIGHT    = "https://img.freepik.com/free-vector/cute-horse-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; // 右上
+const CORNER_BOTTOM_LEFT  = "https://img.freepik.com/free-vector/cute-bird-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; // 左下 (1.5倍放大)
+const CORNER_BOTTOM_RIGHT = "https://img.freepik.com/free-vector/sun-icon-vector-isolated-white-background_138676-5412.jpg";                                                     // 右下 (1.5倍放大)
+
+// ============================================================
+
+const PageHeaderIllustration = () => (
+  <div className="w-32 h-32 flex items-center justify-center overflow-hidden rounded-full bg-white/20 p-2 border-4 border-white/30 shadow-2xl relative z-10">
+    <img 
+      src={HEADER_IMG_URL} 
+      alt="馬年吉祥物" 
+      className="max-w-full max-h-full object-contain"
+      onError={(e) => {
+        e.target.style.display = 'none';
+        e.target.parentNode.innerHTML = '<span class="text-white text-5xl">🧧</span>';
+      }}
+    />
+  </div>
+);
+
+const App = () => {
+  const [step, setStep] = useState(1);
+  const [selectedWish, setSelectedWish] = useState(null);
+  const [randomBlessing, setRandomBlessing] = useState('');
+  const [userImage, setUserImage] = useState(null);
+  const [userName, setUserName] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [finalImageUrl, setFinalImageUrl] = useState('');
+  const canvasRef = useRef(null);
+
+  const luckPhrases = ["馬到成功", "龍馬精神", "一馬當先", "萬馬奔騰", "祥馬獻瑞", "金馬迎春", "馬運亨通", "馬到福隨"];
+
+  const wishPool = [
+    { id: 'wealth', label: '財富', color: '#FEF3C7', icon: <Coins className="text-amber-600" size={32} />, blessings: ["馬上有錢 財源廣進", "駿馬報喜 財庫充盈", "金馬銜寶 萬事大吉", "財氣亨通 馬運當頭"] },
+    { id: 'career', label: '事業', color: '#DBEAFE', icon: <Briefcase className="text-blue-600" size={32} />, blessings: ["馬到成功 鴻圖大展", "驍勇如馬 業績長紅", "策馬揚鞭 步步高升", "萬馬奔騰 旗開得勝"] },
+    { id: 'health', label: '健康', color: '#DCFCE7', icon: <Activity className="text-green-600" size={32} />, blessings: ["龍馬精神 身體健康", "活力如馬 壽比南山", "祥馬獻瑞 闔家安康", "龍馬壯健 福氣連連"] },
+    { id: 'love', label: '愛情', color: '#FFE4E6', icon: <Heart className="text-rose-500" size={32} />, blessings: ["策馬情深 幸福美滿", "龍馬雙飛 恩愛百年", "祥馬繫緣 甜蜜一生", "駿馬引路 緣定今生"] },
+    { id: 'marriage', label: '婚姻', color: '#F3E8FF', icon: <Smile className="text-purple-600" size={32} />, blessings: ["天作之合 馬上有喜", "龍馬良緣 百年好合", "祥馬報喜 永結同心", "金馬連理 恩愛長久"] },
+    { id: 'relation', label: '關係', color: '#FDF2F8', icon: <Users className="text-pink-600" size={32} />, blessings: ["駿馬引路 貴人相隨", "龍馬同行 伯樂識君", "駿馬奔騰 廣結善緣", "金馬牽線 貴人盈門"] }
+  ];
+
+  const handleSelectWish = (wish) => {
+    const randomIndex = Math.floor(Math.random() * wish.blessings.length);
+    setSelectedWish(wish);
+    setRandomBlessing(wish.blessings[randomIndex]);
+    setStep(2);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => { setUserImage(event.target.result); setStep(3); };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  useEffect(() => {
+    const generateCard = async () => {
+      if (step === 3 && canvasRef.current && userImage && selectedWish) {
+        setIsGenerating(true);
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        
+        const loadImage = (src) => {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = src;
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
+          });
+        };
+
+        const [userImg, tl, tr, bl, br] = await Promise.all([
+          loadImage(userImage),
+          loadImage(CORNER_TOP_LEFT),
+          loadImage(CORNER_TOP_RIGHT),
+          loadImage(CORNER_BOTTOM_LEFT),
+          loadImage(CORNER_BOTTOM_RIGHT)
+        ]);
+
+        drawFinalCard(ctx, canvas, { user: userImg, tl, tr, bl, br });
+        setFinalImageUrl(canvas.toDataURL('image/png'));
+        setIsGenerating(false);
+      }
+    };
+
+    generateCard();
+  }, [step, selectedWish, userImage, randomBlessing, userName]);
+
+  const drawFinalCard = (ctx, canvas, images) => {
+    canvas.width = 1000;
+    canvas.height = 1800;
+
+    ctx.fillStyle = '#fdfbf7'; 
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.save();
+    ctx.globalAlpha = 0.95; ctx.fillStyle = '#C8102E'; 
+    drawHandDrawnRect(ctx, 40, 40, 920, 1720, 60);
+    ctx.fill(); ctx.restore();
+
+    ctx.strokeStyle = 'rgba(253, 230, 138, 0.7)'; ctx.lineWidth = 12; ctx.setLineDash([20, 15]);
+    drawHandDrawnRect(ctx, 70, 70, 860, 1660, 40); ctx.stroke(); ctx.setLineDash([]);
+
+    if (images.user) {
+      const photoX = 100, photoY = 130, photoW = 800, photoH = 750;
+      ctx.save(); drawHandDrawnRect(ctx, photoX, photoY, photoW, photoH, 50); ctx.clip();
+      const imgRatio = images.user.width / images.user.height;
+      const targetRatio = photoW / photoH;
+      let dW, dH, dX, dY;
+      if (imgRatio > targetRatio) { dH = photoH; dW = images.user.width * (photoH / images.user.height); dX = photoX - (dW - photoW) / 2; dY = photoY; }
+      else { dW = photoW; dH = images.user.height * (photoW / images.user.width); dX = photoX; dY = photoY - (dH - photoH) / 2; }
+      ctx.drawImage(images.user, dX, dY, dW, dH); ctx.restore();
+    }
+
+    ctx.fillStyle = '#FDE68A'; ctx.textAlign = 'center';
+    ctx.font = 'bold 95px "Noto Serif TC", serif'; ctx.fillText(randomBlessing, 500, 1050);
+    ctx.font = '38px "Noto Sans TC", sans-serif'; ctx.fillText(`2026 丙午馬年 · 願您${selectedWish.label}如意`, 500, 1140);
+    if (userName) { ctx.font = 'bold 50px "Noto Serif TC", serif'; ctx.fillText(`${userName} 敬賀`, 500, 1230); }
+
+    const normSize = 120;
+    const largeSize = 180; 
+    if (images.tl) ctx.drawImage(images.tl, 100, 100, normSize, normSize);
+    if (images.tr) ctx.drawImage(images.tr, 780, 100, normSize, normSize);
+    
+    const decoY = 1450; 
+    if (images.bl) ctx.drawImage(images.bl, 80, decoY, largeSize, largeSize);
+    if (images.br) ctx.drawImage(images.br, 740, decoY, largeSize, largeSize);
+
+    const stampY = 1400;
+    const filteredPhrases = luckPhrases.filter(p => !randomBlessing.includes(p));
+    const luckText = filteredPhrases[Math.floor(Math.random() * filteredPhrases.length)] || "馬到成功";
+    drawBlob(ctx, 500, stampY, 70, '#FDE68A');
+    ctx.fillStyle = '#BE123C'; ctx.font = 'bold 36px "Noto Serif TC", serif';
+    ctx.fillText(luckText[0], 480, stampY - 5); ctx.fillText(luckText[1], 520, stampY - 5);
+    ctx.fillText(luckText[2], 480, stampY + 35); ctx.fillText(luckText[3], 520, stampY + 35);
+
+    const footerY = 1600;
+    ctx.fillStyle = '#e6e39c';
+    ctx.font = 'bold 32px "Noto Sans TC", sans-serif'; ctx.fillText("© 2026 愛盟家庭文教基金會", 500, footerY);
+    ctx.font = '28px "Noto Sans TC", sans-serif'; ctx.fillText("為愛學習持續練習，是一件幸福的事", 500, footerY + 50);
+  };
+
+  function drawHandDrawnRect(ctx, x, y, w, h, r) {
+    const jitter = () => (Math.random() * 4 - 2); 
+    const startX = x + r;
+    const startY = y;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(x + w - r + jitter(), y + jitter());
+    ctx.quadraticCurveTo(x + w, y, x + w + jitter(), y + r + jitter());
+    ctx.lineTo(x + w + jitter(), y + h - r + jitter());
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r + jitter(), y + h + jitter());
+    ctx.lineTo(x + r + jitter(), y + h + jitter());
+    ctx.quadraticCurveTo(x, y + h, x + jitter(), y + h - r + jitter());
+    ctx.lineTo(x + jitter(), y + r + jitter());
+    ctx.quadraticCurveTo(x, y, startX, startY);
+    ctx.closePath();
+  }
+
+  function drawBlob(ctx, x, y, r, color) {
+    ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = color; ctx.beginPath();
+    for(let i=0; i<8; i++) { const angle = (i/8) * Math.PI * 2; const rr = r + (Math.random() * 15 - 7); const px = x + Math.cos(angle) * rr; const py = y + Math.sin(angle) * rr; if(i===0) ctx.moveTo(px, py); else ctx.lineTo(px, py); }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+
+  const downloadImage = () => {
+    const link = document.createElement('a');
+    link.download = `2026馬年賀卡.png`;
+    link.href = finalImageUrl;
+    link.click();
+  };
+
+  return (
+    <div className="min-h-screen bg-[#fcf8f2] text-slate-900 font-sans pb-12 select-none">
+      <style>{`
+        @keyframes handPulse {
+          0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+          50% { transform: translateY(8px) scale(0.9); opacity: 0.7; }
+        }
+        .animate-hand {
+          animation: handPulse 1.5s infinite ease-in-out;
+        }
+      `}</style>
+      
+      <canvas ref={canvasRef} className="hidden" />
+
+      <header className="bg-red-800 text-yellow-100 pt-12 pb-16 px-6 text-center relative shadow-xl overflow-hidden">
+        <div className="relative z-10 flex flex-col items-center gap-2">
+          <div className="animate-bounce"><PageHeaderIllustration /></div>
+          <h1 className="text-4xl font-bold tracking-[0.2em] drop-shadow-md">2026 丙午馬年</h1>
+          <p className="text-red-100 mt-2 text-xl font-medium tracking-widest bg-white/10 px-6 py-1 rounded-full border border-white/20 backdrop-blur-sm">手繪插畫感拜年賀卡</p>
+        </div>
+      </header>
+
+      <main className="max-w-xl mx-auto p-5 -mt-6 relative z-20">
+        <div className="flex items-center justify-around mb-12 bg-white/80 backdrop-blur p-4 rounded-3xl shadow-sm border border-red-50">
+          {[1, 2, 3].map((num) => (
+            <div key={num} className="flex flex-col items-center gap-2">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl transition-all ${step === num ? 'bg-red-600 text-white scale-110 shadow-lg' : step > num ? 'bg-red-100 text-red-700' : 'bg-white border-2 border-red-50 text-red-100'}`}>{num}</div>
+              <span className={`text-sm font-bold ${step >= num ? 'text-red-900' : 'text-slate-300'}`}>{num === 1 ? '許心願' : num === 2 ? '傳照片' : '看成品'}</span>
+            </div>
+          ))}
+        </div>
+
+        {step === 1 && (
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 space-y-8">
+            <div className="bg-white/60 p-6 rounded-[2.5rem] border-2 border-red-100 shadow-sm space-y-4">
+              <label className="text-xl font-bold text-slate-700 flex items-center gap-2"><User size={24} className="text-red-500" />想詢問您的賀卡想要怎麼署名？</label>
+              <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="例如：王小明" className="w-full p-4 text-xl bg-white border-2 border-red-200 rounded-2xl focus:outline-none focus:border-red-500 transition-colors shadow-inner" />
+              <p className="text-slate-400 text-base italic">※ 將會印製在賀卡下方的祝福語後方</p>
+            </div>
+            <div className="h-px bg-slate-200 w-full"></div>
+            <h2 className="text-2xl font-bold text-center text-slate-800 mb-8 font-serif">新的一年，您的願望是？</h2>
+            <div className="grid grid-cols-2 gap-5">
+              {wishPool.map((wish) => (
+                <button key={wish.id} onClick={() => handleSelectWish(wish)} style={{ backgroundColor: wish.color }} className="group p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border-2 border-transparent hover:border-red-400 flex flex-col items-center gap-3 relative overflow-hidden active:scale-95">
+                  <div className="mb-2 group-hover:scale-125 transition-transform animate-float">{wish.icon}</div>
+                  <span className="text-2xl font-bold text-slate-800 tracking-wider">{wish.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 text-center space-y-8">
+            <h2 className="text-2xl font-bold text-center text-slate-800 font-serif">為「{selectedWish?.label}」心願拍張照吧</h2>
+            <div className="relative group mx-auto max-w-sm">
+              <input type="file" accept="image/*" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+              <div className="bg-white aspect-square rounded-[3.5rem] shadow-xl border-4 border-dashed border-red-100 flex flex-col items-center justify-center gap-6 group-hover:border-red-400 transition-colors p-10">
+                <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center"><Camera className="w-12 h-12 text-red-500" /></div>
+                <div className="space-y-1"><p className="text-2xl font-bold text-slate-700">點擊上傳照片</p><p className="text-slate-400 text-lg">建議選取清晰的全家福或獨照</p></div>
+              </div>
+            </div>
+            <button onClick={() => setStep(1)} className="text-slate-400 hover:text-red-700 font-bold text-xl flex items-center justify-center gap-2 mx-auto"><RefreshCw className="w-5 h-5" /> 重新選願望</button>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="animate-in zoom-in-95 duration-700 space-y-10">
+            <h2 className="text-2xl font-bold text-center text-red-900 flex items-center justify-center gap-2 font-serif">
+              <Sparkles className="text-yellow-600" /> 您的馬年專屬賀卡完成囉！
+            </h2>
+            
+            {/* 賀卡預覽區域 */}
+            <div className="relative group max-w-[90%] mx-auto">
+              <div className="absolute -inset-1 bg-gradient-to-b from-red-100 to-red-50 rounded-[3.2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+              <div className="relative shadow-2xl rounded-[3rem] overflow-hidden bg-white border-[12px] border-white ring-1 ring-black/5">
+                {isGenerating ? (
+                  <div className="aspect-[1000/1800] w-full flex flex-col items-center justify-center gap-4 bg-slate-50/50 backdrop-blur-sm">
+                    <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="font-bold text-red-800 text-xl tracking-widest animate-pulse">繪製賀卡中...</p>
+                  </div>
+                ) : (
+                  <img src={finalImageUrl} alt="成品賀卡" className="w-full h-auto block" style={{ WebkitTouchCallout: 'default' }} />
+                )}
+              </div>
+            </div>
+
+            {/* 下方互動與說明區 */}
+            <div className="space-y-6">
+              <button onClick={downloadImage} className="w-full bg-red-700 text-yellow-50 py-6 rounded-[2.2rem] text-2xl font-bold shadow-[0_10px_20px_-5px_rgba(185,28,28,0.4)] flex items-center justify-center gap-4 hover:bg-red-800 active:scale-95 transition-all">
+                <Download className="w-8 h-8" /> 儲存到手機
+              </button>
+
+              {/* 🚀 改良後的長按存圖提示框 */}
+              <div className="relative overflow-hidden bg-yellow-50/80 border-2 border-dashed border-yellow-300 rounded-[2.5rem] p-8 text-center shadow-inner">
+                <div className="relative z-10 flex flex-col items-center gap-3">
+                  <div className="bg-yellow-400 text-white p-3 rounded-full animate-hand">
+                    <MousePointer2 size={28} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-yellow-950 text-xl font-bold">小秘訣：長按上方圖片</p>
+                    <p className="text-yellow-800 text-lg leading-relaxed">
+                      彈出選單後點選「儲存影像」<br/>即可分享到 <b>LINE</b> 群組與親友拜年！
+                    </p>
+                  </div>
+                </div>
+                <div className="absolute -right-4 -bottom-4 text-yellow-200/50 -rotate-12">
+                   <Sparkles size={80} />
+                </div>
+              </div>
+
+              <button onClick={() => {setStep(1); setUserName(''); setFinalImageUrl('');}} className="w-full text-slate-400 font-bold text-xl py-4 hover:text-red-700 transition-colors flex items-center justify-center gap-2">
+                <RefreshCw size={20} /> 製作另一張賀年卡
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+
+      <footer className="mt-12 px-8 max-w-xl mx-auto opacity-70 text-center space-y-4 pb-20">
+        <div className="h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
+        <div className="space-y-3">
+          <p className="text-slate-500 font-light text-lg italic tracking-wider">2026 丙午馬年 · 祥馬獻瑞 · 萬事大吉</p>
+          <div className="text-slate-400 font-light text-lg italic space-y-1">
+            <p>© 2026 愛盟家庭文教基金會</p>
+            <p>為愛學習持續練習，是一件幸福的事</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
