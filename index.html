@@ -298,7 +298,7 @@
                     try {
                         const blob = await (await fetch(finalImageUrl)).blob();
                         const file = new File([blob], 'NewYearCard.png', { type: 'image/png' });
-                        await navigator.share({ files: [file], title: '2026 馬年賀歲' });
+                        await navigator.share({ files: [file], title: '恭賀新禧！送您一張馬年賀卡！' });
                     } catch (err) { console.log('分享已取消'); }
                 }
             };
@@ -314,7 +314,7 @@
                                     <img src={HEADER_IMG_URL} alt="Hero" className="max-w-full max-h-full object-contain" />
                                 </div>
                             </div>
-                            <h1 className="text-4xl font-bold tracking-[0.2em] drop-shadow-md">2026 丙午馬年</h1>
+                            <h1 className="text-4xl font-bold tracking-[0.2em] drop-shadow-md">2026 丙午馬年恭賀新禧</h1>
                             <p className="text-red-100 mt-2 text-xl font-medium tracking-widest bg-white/10 px-6 py-1 rounded-full border border-white/20 backdrop-blur-sm">手繪插畫感拜年賀卡</p>
                         </div>
                     </header>
