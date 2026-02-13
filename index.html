@@ -73,13 +73,17 @@
         // ============================================================
         
         // 1. 第一頁介面上方與 Header 的馬兒圖片
-        const HEADER_IMG_URL = "https://github.com/belovedraod/HorseYearsCard/blob/main/new_horse.png?raw=true"; 
+        const HEADER_IMG_URL = "https://img.freepik.com/free-vector/cute-horse-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-premium-vector_138676-5412.jpg"; 
 
-        // 2. 賀卡左下方的裝飾圖檔連結
-        const LEFT_DECO_IMG_URL = "https://github.com/belovedraod/HorseYearsCard/blob/main/new_horse-left.png?raw=true"; 
+        // 2. 賀卡下半部背景的「八角形裝飾」圖檔連結 (現在可以替換了！)
+        // 建議使用帶透明背景的 PNG 檔案
+        const OCTAGON_PATTERN_URL = "https://img.freepik.com/free-vector/polygonal-shape-collection_23-2148197711.jpg"; 
 
-        // 3. 賀卡右下方的裝飾圖檔連結
-        const RIGHT_DECO_IMG_URL = "https://github.com/belovedraod/HorseYearsCard/blob/main/new_horse-right.png"; 
+        // 3. 賀卡左下方的插圖連結 (原金元寶處)
+        const LEFT_DECO_IMG_URL = "https://img.freepik.com/free-vector/gold-ingot-cartoon-vector-icon-illustration-wealth-concept-isolated-premium-vector_138676-5412.jpg"; 
+
+        // 4. 賀卡右下方的插圖連結 (原金元寶處)
+        const RIGHT_DECO_IMG_URL = "https://img.freepik.com/free-vector/gold-ingot-cartoon-vector-icon-illustration-wealth-concept-isolated-premium-vector_138676-5412.jpg"; 
 
         // ============================================================
 
@@ -104,7 +108,7 @@
                 { id: 'health', label: '健康', color: '#DCFCE7', icon: "activity", blessings: ["龍馬精神 身體健康", "活力如馬 壽比南山", "祥馬獻瑞 闔家安康", "龍馬壯健 福氣連連"] },
                 { id: 'love', label: '愛情', color: '#FFE4E6', icon: "heart", blessings: ["策馬情深 幸福美滿", "龍馬雙飛 恩愛百年", "祥馬繫緣 甜蜜一生", "駿馬引路 緣定今生"] },
                 { id: 'marriage', label: '婚姻', color: '#F3E8FF', icon: "smile", blessings: ["天作之合 馬上有喜", "龍馬良緣 百年好合", "祥馬報喜 永結同心", "金馬連理 恩愛長久"] },
-                { id: 'relation', label: '關係', color: '#FDF2F8', icon: "users", blessings: ["駿馬引路 貴人相隨", "龍馬同行 伯樂識君", "駿馬奔騰 好運加碼", "金馬牽線 貴人盈門"] }
+                { id: 'relation', label: '關係', color: '#FDF2F8', icon: "users", blessings: ["駿馬引路 貴人相隨", "龍馬同行 伯樂識君", "駿馬奔騰 廣結善緣", "金馬牽線 貴人盈門"] }
             ];
 
             const handleSelectWish = (wish) => {
@@ -140,14 +144,16 @@
                             });
                         };
 
-                        const [userImg, leftDeco, rightDeco] = await Promise.all([
+                        const [userImg, leftDeco, rightDeco, octagonImg] = await Promise.all([
                             loadImage(userImage),
                             loadImage(LEFT_DECO_IMG_URL),
-                            loadImage(RIGHT_DECO_IMG_URL)
+                            loadImage(RIGHT_DECO_IMG_URL),
+                            loadImage(OCTAGON_PATTERN_URL)
                         ]);
 
-                        drawFinalCard(ctx, canvas, userImg, leftDeco, rightDeco);
+                        drawFinalCard(ctx, canvas, userImg, leftDeco, rightDeco, octagonImg);
                         
+                        // 🚀 緩衝時間確保所有像素寫入 Canvas
                         setTimeout(() => {
                             const dataUrl = canvas.toDataURL('image/png');
                             setFinalImageUrl(dataUrl);
@@ -158,7 +164,7 @@
                 generateCard();
             }, [step, selectedWish, userImage, randomBlessing, userName]);
 
-            const drawFinalCard = (ctx, canvas, userImg, leftDeco, rightDeco) => {
+            const drawFinalCard = (ctx, canvas, userImg, leftDeco, rightDeco, octagonImg) => {
                 canvas.width = 1000;
                 canvas.height = 2000;
 
@@ -194,7 +200,7 @@
                     ctx.restore(); 
                 }
 
-                // 🚀 核心：強行重置繪圖狀態
+                // 🚀 強行重置繪圖狀態
                 ctx.setTransform(1, 0, 0, 1, 0, 0); 
                 ctx.beginPath();
                 ctx.globalAlpha = 1.0;
@@ -219,13 +225,20 @@
                     ctx.fillText(`${userName} 敬賀`, 500, 1230); 
                 }
 
-                // 🚀 核心變更：左右巨大的八角裝飾 (半徑 105px)，已移除 Emoji
-                // 左側裝飾
-                drawSeal(ctx, 220, 1400, 105, '#FDE68A');
-                // 右側裝飾
-                drawSeal(ctx, 780, 1550, 105, '#FDE68A');
+                // 🚀 核心變更：現在使用圖片替換原本的八角形繪圖指令
+                const octSize = 210; // 半徑 105px 對應直徑 210px
+                if (octagonImg) {
+                    // 左側背景裝飾
+                    ctx.drawImage(octagonImg, 220 - octSize/2, 1400 - octSize/2, octSize, octSize);
+                    // 右側背景裝飾
+                    ctx.drawImage(octagonImg, 780 - octSize/2, 1550 - octSize/2, octSize, octSize);
+                } else {
+                    // 備案：如果圖片載入失敗，則維持原本的顏色方塊或繪圖
+                    drawSeal(ctx, 220, 1400, 105, '#FDE68A');
+                    drawSeal(ctx, 780, 1550, 105, '#FDE68A');
+                }
 
-                // 6. 🚀 左右自定義插圖繪製 (尺寸 130px)
+                // 6. 🚀 左右自定義插圖繪製 (前景裝飾，如金元寶)
                 const iSize = 130; 
                 if (leftDeco) {
                     ctx.drawImage(leftDeco, 50, 1550, iSize, iSize);
@@ -234,15 +247,17 @@
                     ctx.drawImage(rightDeco, 820, 1380, iSize, iSize);
                 }
 
-                // 7. 吉祥印章 (中央底部)
+                // 7. 吉祥印章 (中央底部，包含原本的八角形底圖與動態文字)
                 const stampY = 1620;
                 const luckText = ["馬到成功", "龍馬精神", "一馬當先", "萬馬奔騰"].find(t => !randomBlessing.includes(t)) || "馬到成功";
+                
+                // 中央印章的底圖也可以換成圖片，這裡示範維持繪圖指令以確保文字對齊，或者您也可以換成圖片
                 drawSeal(ctx, 500, stampY, 70, '#FDE68A');
                 ctx.fillStyle = '#BE123C'; ctx.font = 'bold 36px "Noto Sans TC", sans-serif';
                 ctx.fillText(luckText[0], 480, stampY - 5); ctx.fillText(luckText[1], 520, stampY - 5);
                 ctx.fillText(luckText[2], 480, stampY + 35); ctx.fillText(luckText[3], 520, stampY + 35);
 
-                // 8. 基金會頁尾資訊 (底部留白優化)
+                // 8. 基金會頁尾資訊
                 const footerY = 1820;
                 ctx.fillStyle = '#e6e39c';
                 ctx.font = 'bold 36px "Noto Sans TC", sans-serif'; 
