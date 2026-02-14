@@ -293,16 +293,19 @@
                 ctx.closePath(); ctx.fill(); ctx.restore();
             }
 
-            // 🚀 修改後的分享函數：增加文字邀請訊息
+            // 🚀 更新後的分享函數：將三段訊息整合進分享流程
             const handleShare = async () => {
                 if (navigator.share && finalImageUrl) {
                     try {
                         const blob = await (await fetch(finalImageUrl)).blob();
                         const file = new File([blob], 'NewYearCard.png', { type: 'image/png' });
+                        
+                        // 組合分享文字：第一段「恭賀新禧」+ 第三段「製作連結」
+                        // 圖片檔案會夾在中間發送 (視應用程式而定，通常會呈現為圖片與其標題文字)
                         await navigator.share({ 
                             files: [file], 
-                            title: '2026 馬年賀歲',
-                            text: '邀請您也來製作您的馬年賀卡：https://belovedraod.github.io/HorseYearsCard/'
+                            title: '恭賀新禧！送您一張馬年賀卡！',
+                            text: `恭賀新禧！送您一張馬年賀卡！\n\n邀請您也來製作您的馬年賀卡：https://belovedraod.github.io/HorseYearsCard/`
                         });
                     } catch (err) { console.log('分享已取消'); }
                 }
