@@ -102,12 +102,12 @@
             const canvasRef = useRef(null);
 
             const wishes = [
-                { id: 'wealth', label: '財富', color: '#FEF3C7', icon: "coins", blessings: ["馬上有錢 財源廣進", "駿馬報喜 財庫充盈", "金馬銜寶 萬事大吉", "財氣亨通 馬運當頭"] },
-                { id: 'career', label: '事業', color: '#DBEAFE', icon: "briefcase", blessings: ["馬到成功 鴻圖大展", "驍勇如馬 業績長紅", "策馬揚鞭 步步高升", "萬馬奔騰 旗開得勝"] },
-                { id: 'health', label: '健康', color: '#DCFCE7', icon: "activity", blessings: ["龍馬精神 身體健康", "活力如馬 壽比南山", "祥馬獻瑞 闔家安康", "龍馬壯健 福氣連連"] },
-                { id: 'love', label: '愛情', color: '#FFE4E6', icon: "heart", blessings: ["策馬情深 幸福美滿", "龍馬雙飛 恩愛百年", "祥馬繫緣 甜蜜一生", "駿馬引路 緣定今生"] },
-                { id: 'marriage', label: '婚姻', color: '#F3E8FF', icon: "smile", blessings: ["天作之合 馬上有喜", "龍馬良緣 百年好合", "祥馬報喜 永結同心", "金馬連理 恩愛長久"] },
-                { id: 'relation', label: '關係', color: '#FDF2F8', icon: "users", blessings: ["駿馬引路 貴人相隨", "龍馬同行 伯樂識君", "駿馬奔騰 廣結善緣", "金馬牽線 貴人盈門"] }
+                { id: 'wealth', label: '財富', color: '#FEF3C7', icon: "coins", blessings: ["馬上有錢 財源廣進", "駿馬報喜 財庫充盈", "金馬銜寶 萬事大吉", "財氣亨通 馬運當頭", "愛迎新歲 富潤流年", "馬蹄生金 來財運旺"] },
+                { id: 'career', label: '事業', color: '#DBEAFE', icon: "briefcase", blessings: ["馬到成功 鴻圖大展", "驍勇如馬 業績長紅", "策馬揚鞭 步步高升", "萬馬奔騰 旗開得勝", "青雲直上 大展鴻圖", "火馬騰雲 好運降臨"] },
+                { id: 'health', label: '健康', color: '#DCFCE7', icon: "activity", blessings: ["龍馬精神 身體健康", "元氣滿滿 日日安康", "祥馬獻瑞 闔家安康", "龍馬壯健 福氣連連", "馬年延壽 福氣安康", "心寬體健 歲歲平安"] },
+                { id: 'love', label: '愛情', color: '#FFE4E6', icon: "heart", blessings: ["策馬情深 幸福美滿", "龍馬雙飛 恩愛百年", "祥馬繫緣 甜蜜一生", "駿馬引路 緣定今生" , "愛有所歸 幸福長存" , "愛中同行 喜樂相伴"] },
+                { id: 'marriage', label: '婚姻', color: '#F3E8FF', icon: "smile", blessings: ["天作之合 馬上有喜", "龍馬良緣 百年好合", "祥馬報喜 永結同心", "金馬連理 恩愛長久", "花開富貴 愛情永固", "福祿鴛鴦 歲歲平安"] },
+                { id: 'relation', label: '關係', color: '#FDF2F8', icon: "users", blessings: ["駿馬引路 貴人相隨", "龍馬同行 伯樂識君", "駿馬奔騰 人氣加碼", "金馬牽線 貴人盈門", "笑口常開 平安喜樂", "福馬報喜 心想事成"] }
             ];
 
             const handleSelectWish = (wish) => {
