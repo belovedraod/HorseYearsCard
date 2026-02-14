@@ -75,7 +75,7 @@
         // 1. 第一頁介面 Header 的馬兒
         const HEADER_IMG_URL = "https://raw.githubusercontent.com/belovedraod/HorseYearsCard/main/new_horse.png"; 
 
-        // 2. 賀卡下半部「中央印章」的底圖 (如果是透明 PNG，顏色會隨圖片本身)
+        // 2. 賀卡下半部「中央印章」的底圖
         const CENTER_SEAL_URL = "https://img.freepik.com/free-vector/polygonal-shape-collection_23-2148197711.jpg"; 
 
         // 3. 賀卡下半部「左側裝飾」圖檔
@@ -102,12 +102,12 @@
             const canvasRef = useRef(null);
 
             const wishes = [
-                { id: 'wealth', label: '財富', color: '#FEF3C7', icon: "coins", blessings: ["馬上有錢 財源廣進", "駿馬報喜 財庫充盈", "金馬銜寶 萬事大吉", "愛迎新歲 富潤流年"] },
+                { id: 'wealth', label: '財富', color: '#FEF3C7', icon: "coins", blessings: ["馬上有錢 財源廣進", "駿馬報喜 財庫充盈", "金馬銜寶 萬事大吉", "財氣亨通 馬運當頭"] },
                 { id: 'career', label: '事業', color: '#DBEAFE', icon: "briefcase", blessings: ["馬到成功 鴻圖大展", "驍勇如馬 業績長紅", "策馬揚鞭 步步高升", "萬馬奔騰 旗開得勝"] },
-                { id: 'health', label: '健康', color: '#DCFCE7', icon: "activity", blessings: ["龍馬精神 身體健康", "元氣滿滿 日日安康", "祥馬獻瑞 闔家安康", "龍馬壯健 福氣連連"] },
+                { id: 'health', label: '健康', color: '#DCFCE7', icon: "activity", blessings: ["龍馬精神 身體健康", "活力如馬 壽比南山", "祥馬獻瑞 闔家安康", "龍馬壯健 福氣連連"] },
                 { id: 'love', label: '愛情', color: '#FFE4E6', icon: "heart", blessings: ["策馬情深 幸福美滿", "龍馬雙飛 恩愛百年", "祥馬繫緣 甜蜜一生", "駿馬引路 緣定今生"] },
-                { id: 'marriage', label: '婚姻', color: '#F3E8FF', icon: "smile", blessings: ["天作之合 馬上有喜", "愛有所歸 幸福長存", "祥馬報喜 永結同心", "愛中同行 喜樂相伴"] },
-                { id: 'relation', label: '關係', color: '#FDF2F8', icon: "users", blessings: ["駿馬引路 貴人相隨", "龍馬同行 伯樂識君", "駿馬奔騰 人氣加碼", "金馬牽線 貴人盈門"] }
+                { id: 'marriage', label: '婚姻', color: '#F3E8FF', icon: "smile", blessings: ["天作之合 馬上有喜", "龍馬良緣 百年好合", "祥馬報喜 永結同心", "金馬連理 恩愛長久"] },
+                { id: 'relation', label: '關係', color: '#FDF2F8', icon: "users", blessings: ["駿馬引路 貴人相隨", "龍馬同行 伯樂識君", "駿馬奔騰 廣結善緣", "金馬牽線 貴人盈門"] }
             ];
 
             const handleSelectWish = (wish) => {
@@ -230,7 +230,7 @@
                 // 🚀 6. 佈局調整：印章與插圖
                 const stampY = 1530; 
                 
-                // 中央印章底圖 (縮小至 240px 並使用金色底色備案)
+                // 中央印章底圖 (240px)
                 if (sealBgImg) {
                     const sSize = 240; 
                     ctx.drawImage(sealBgImg, 500 - sSize/2, stampY - sSize/2, sSize, sSize);
@@ -251,13 +251,13 @@
                     ctx.drawImage(leftImg, 80, stampY - 220, lSize, lSize);
                 }
 
-                // 右側插圖 (🚀 往上移動避開版權字)
+                // 右側插圖 (往上移動避開版權字)
                 if (rightImg) {
                     const rSize = 200;
                     ctx.drawImage(rightImg, 740, stampY - 50, rSize, rSize); 
                 }
 
-                // 🚀 7. 基金會頁尾資訊 (🚀 往上移動保留留白)
+                // 🚀 7. 基金會頁尾資訊 (往上移動保留留白)
                 const footerY = 1750; 
                 ctx.fillStyle = '#e6e39c';
                 ctx.font = 'bold 36px "Noto Sans TC", sans-serif'; 
@@ -293,12 +293,17 @@
                 ctx.closePath(); ctx.fill(); ctx.restore();
             }
 
+            // 🚀 修改後的分享函數：增加文字邀請訊息
             const handleShare = async () => {
                 if (navigator.share && finalImageUrl) {
                     try {
                         const blob = await (await fetch(finalImageUrl)).blob();
                         const file = new File([blob], 'NewYearCard.png', { type: 'image/png' });
-                        await navigator.share({ files: [file], title: '恭賀新禧！送您一張馬年賀卡！' });
+                        await navigator.share({ 
+                            files: [file], 
+                            title: '2026 馬年賀歲',
+                            text: '邀請您也來製作您的馬年賀卡：https://belovedraod.github.io/HorseYearsCard/'
+                        });
                     } catch (err) { console.log('分享已取消'); }
                 }
             };
@@ -314,7 +319,7 @@
                                     <img src={HEADER_IMG_URL} alt="Hero" className="max-w-full max-h-full object-contain" />
                                 </div>
                             </div>
-                            <h1 className="text-4xl font-bold tracking-[0.2em] drop-shadow-md">2026 丙午馬年 恭賀新禧</h1>
+                            <h1 className="text-4xl font-bold tracking-[0.2em] drop-shadow-md">2026 丙午馬年</h1>
                             <p className="text-red-100 mt-2 text-xl font-medium tracking-widest bg-white/10 px-6 py-1 rounded-full border border-white/20 backdrop-blur-sm">手繪插畫感拜年賀卡</p>
                         </div>
                     </header>
