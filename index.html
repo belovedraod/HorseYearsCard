@@ -42,7 +42,6 @@
             width: 100%;
         }
 
-        /* 儲存提示動畫 */
         @keyframes handPulse {
             0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
             50% { transform: translateY(8px) scale(0.9); opacity: 0.8; }
@@ -134,8 +133,13 @@
             const [selectedBlessing, setSelectedBlessing] = useState('');
             const [customInput, setCustomInput] = useState('');
             const [userImage, setUserImage] = useState(null);
+            
+            // 照片編輯與精準座標狀態
             const [scale, setScale] = useState(1);
             const [position, setPosition] = useState({ x: 0, y: 0 });
+            const [uiWidth, setUiWidth] = useState(320); // 🚀 關鍵：儲存手機螢幕上的預覽框寬度
+            const cropRef = useRef(null);
+
             const [isDragging, setIsDragging] = useState(false);
             const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
             const [isGenerating, setIsGenerating] = useState(false);
@@ -199,7 +203,11 @@
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 setPosition({ x: clientX - dragStart.x, y: clientY - dragStart.y });
             };
-            const handleEnd = () => setIsDragging(false);
+            const handleEnd = () => {
+                setIsDragging(false);
+                // 🚀 當結束拖曳時，獲取當前手機上的預覽框寬度，確保換算精準
+                if (cropRef.current) setUiWidth(cropRef.current.offsetWidth);
+            };
 
             useEffect(() => {
                 const generateCard = async () => {
@@ -254,17 +262,29 @@
 
                 if (userImg) {
                     const px = 100, py = 140, pw = 800, ph = 1150;
-                    ctx.save(); drawRect(ctx, px, py, pw, ph, 50); ctx.clip(); 
+                    ctx.save(); 
+                    drawRect(ctx, px, py, pw, ph, 50); 
+                    ctx.clip(); 
+                    
                     const baseWidth = userImg.width, baseHeight = userImg.height;
                     const imgRatio = baseWidth / baseHeight, targetRatio = pw / ph;
+                    
                     let drawW, drawH;
-                    if (imgRatio > targetRatio) { drawH = ph; drawW = baseWidth * (ph / baseHeight); }
-                    else { drawW = pw; drawH = baseHeight * (pw / baseWidth); }
-                    const previewBoxWidth = 320, scaleFactor = pw / previewBoxWidth;
-                    const centerX = px + pw / 2, centerY = py + ph / 2;
-                    ctx.translate(centerX + position.x * scaleFactor, centerY + position.y * scaleFactor);
+                    if (imgRatio > targetRatio) { 
+                        drawH = ph; drawW = baseWidth * (ph / baseHeight); 
+                    } else { 
+                        drawW = pw; drawH = baseHeight * (pw / baseWidth); 
+                    }
+                    
+                    // 🚀 核心修正：使用動態 uiWidth 進行比例換算，解決各型號手機偏位問題
+                    const scaleFactor = pw / uiWidth;
+                    const centerX = px + pw / 2;
+                    const centerY = py + ph / 2;
+                    
+                    ctx.translate(centerX + (position.x * scaleFactor), centerY + (position.y * scaleFactor));
                     ctx.scale(scale, scale);
                     ctx.drawImage(userImg, -drawW / 2, -drawH / 2, drawW, drawH);
+                    
                     ctx.restore(); 
                 }
 
@@ -280,8 +300,7 @@
                     ctx.fillText(`${userName} 敬賀`, 500, 1570); 
                 }
 
-                // 🚀 上移佈局點：1750px (印章)
-                const stampY = 1750; 
+                const stampY = 1780; 
                 if (sealBgImg) {
                     const sSize = 240; 
                     ctx.drawImage(sealBgImg, 500 - sSize/2, stampY - sSize/2, sSize, sSize);
@@ -300,10 +319,8 @@
                     const rSize = 300; ctx.drawImage(rightImg, 680, stampY - 80, rSize, rSize); 
                 }
 
-                // 🚀 上移頁尾文字：1950px
-                const footerY = 1950; 
-                ctx.fillStyle = '#e6e39c';
-                ctx.font = 'bold 36px "Noto Sans TC", sans-serif'; 
+                const footerY = 1980; 
+                ctx.fillStyle = '#e6e39c'; ctx.font = 'bold 36px "Noto Sans TC", sans-serif'; 
                 ctx.fillText("© 2026 愛盟家庭文教基金會", 500, footerY);
                 ctx.font = 'bold 32px "Noto Sans TC", sans-serif'; 
                 ctx.fillText("為愛學習持續練習，是一件幸福的事", 500, footerY + 60);
@@ -313,7 +330,8 @@
                 ctx.beginPath();
                 ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
                 ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-                ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                ctx.lineTo(x + w, y + h - r);
+                ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
                 ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
                 ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
                 ctx.closePath();
@@ -362,7 +380,7 @@
                                     <img src={HEADER_IMG_URL} alt="Hero" className="max-w-full max-h-full object-contain" />
                                 </div>
                             </div>
-                            <h1 className="text-4xl font-bold tracking-[0.2em] w-full">2026 丙午馬年</h1>
+                            <h1 className="text-4xl font-bold tracking-[0.2em] w-full text-center">2026 丙午馬年</h1>
                             <p className="text-red-100 mt-2 text-xl font-medium tracking-widest bg-white/10 px-6 py-1 rounded-full border border-white/20 backdrop-blur-sm text-center">手繪插畫感拜年賀卡</p>
                         </div>
                     </header>
@@ -383,7 +401,7 @@
                                 <h2 className="text-2xl font-bold text-slate-800 mb-2 font-serif w-full text-center">請選擇一句喜歡的賀詞：</h2>
                                 <div className="grid grid-cols-1 gap-3 w-full max-w-md">
                                     {presetBlessings.map((blessing, idx) => (
-                                        <button key={idx} onClick={() => handleSelectBlessing(blessing)} className="w-full p-5 bg-white border-2 border-red-100 rounded-3xl text-xl font-bold text-red-800 hover:bg-red-50 hover:border-red-400 transition-all active:scale-95 shadow-sm">
+                                        <button key={idx} onClick={() => handleSelectBlessing(blessing)} className="w-full p-5 bg-white border-2 border-red-100 rounded-3xl text-xl font-bold text-red-800 hover:bg-red-50 hover:border-red-400 transition-all active:scale-95 shadow-sm text-center">
                                             {blessing}
                                         </button>
                                     ))}
@@ -411,7 +429,17 @@
                                     </div>
                                 ) : (
                                     <div className="w-full flex-center-col space-y-6">
-                                        <div className="crop-wrapper" onMouseDown={handleStart} onMouseMove={handleMove} onMouseUp={handleEnd} onMouseLeave={handleEnd} onTouchStart={handleStart} onTouchMove={handleMove} onTouchEnd={handleEnd}>
+                                        <div 
+                                            ref={cropRef}
+                                            className="crop-wrapper" 
+                                            onMouseDown={handleStart} 
+                                            onMouseMove={handleMove} 
+                                            onMouseUp={handleEnd} 
+                                            onMouseLeave={handleEnd} 
+                                            onTouchStart={handleStart} 
+                                            onTouchMove={handleMove} 
+                                            onTouchEnd={handleEnd}
+                                        >
                                             <div className="crop-aspect-ratio"></div>
                                             <img src={userImage} className="crop-image" style={{ width: '100%', height: 'auto', transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})` }} />
                                             <div className="crop-overlay"></div>
