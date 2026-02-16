@@ -4,22 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2026 丙午馬年賀歲 - 愛盟家庭文教基金會</title>
-   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-WQNL3HG75Z"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    
+    <!-- 🚀 Google Analytics 4 (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WQNL3HG75Z"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-WQNL3HG75Z');
+    </script>
 
-  gtag('config', 'G-WQNL3HG75Z');
-</script>
+    <!-- 🚀 Microsoft Clarity -->
     <script type="text/javascript">
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "vhplyooggh");
-</script>
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "vhplyooggh");
+    </script>
+
     <!-- 載入必要套件 CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -66,7 +69,6 @@
             pointer-events: none;
         }
         
-        /* 全域強制置中輔助 */
         .flex-center-col {
             display: flex;
             flex-direction: column;
@@ -137,6 +139,7 @@
             const [customInput, setCustomInput] = useState('');
             const [userImage, setUserImage] = useState(null);
             
+            // 照片編輯狀態
             const [scale, setScale] = useState(1);
             const [position, setPosition] = useState({ x: 0, y: 0 });
             const [isDragging, setIsDragging] = useState(false);
@@ -153,12 +156,27 @@
             ];
 
             const handleSelectBlessing = (text) => {
+                // 🚀 GA4 事件：追蹤賀詞點擊
+                if (typeof gtag === 'function') {
+                    gtag('event', 'select_blessing', {
+                        'event_category': 'Engagement',
+                        'event_label': text,
+                        'blessing_content': text
+                    });
+                }
                 setSelectedBlessing(text);
                 setStep(2);
             };
 
             const handleCustomConfirm = () => {
                 if (customInput.trim()) {
+                    // 🚀 GA4 事件：追蹤自定義賀詞
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'custom_blessing_entry', {
+                            'event_category': 'Engagement',
+                            'event_label': 'User Custom Text'
+                        });
+                    }
                     setSelectedBlessing(customInput);
                     setStep(2);
                 }
@@ -239,7 +257,7 @@
                 ctx.fillStyle = '#fdfbf7'; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // 主要背板與金色框
+                // 主要背板與金色框 (對稱設計)
                 ctx.save();
                 ctx.globalAlpha = 0.95; ctx.fillStyle = '#C8102E'; 
                 drawRect(ctx, 40, 50, 920, 2100, 60); ctx.fill(); ctx.restore();
@@ -289,22 +307,19 @@
                 ctx.fillStyle = '#FDE68A'; 
                 ctx.textAlign = 'center';
                 
-                // 八字賀詞
                 ctx.font = 'bold 95px "Noto Sans TC", sans-serif'; 
                 ctx.fillText(selectedBlessing, 500, 1400);
                 
-                // 2026 丙午馬年
                 ctx.font = 'bold 44px "Noto Sans TC", sans-serif'; 
                 ctx.fillText(`2026 丙午馬年`, 500, 1480);
                 
-                // 署名
                 if (userName) { 
                     ctx.font = 'bold 52px "Noto Sans TC", sans-serif'; 
                     ctx.fillText(`${userName} 敬賀`, 500, 1570); 
                 }
 
-                // 🚀 5. 印章與插圖佈局 (上移 70px)
-                const stampY = 1780; // 原 1850 -> 1780
+                // 5. 印章與插圖佈局 (上移優化佈局)
+                const stampY = 1780; 
                 
                 if (sealBgImg) {
                     const sSize = 240; 
@@ -318,18 +333,16 @@
                 ctx.fillText(luckText[0], 480, stampY - 5); ctx.fillText(luckText[1], 520, stampY - 5);
                 ctx.fillText(luckText[2], 480, stampY + 35); ctx.fillText(luckText[3], 520, stampY + 35);
 
-                // 左側插圖 (隨 stampY 上移)
                 if (leftImg) {
                     const lSize = 360;
                     ctx.drawImage(leftImg, 60, stampY - 220, lSize, lSize);
                 }
-                // 右側插圖 (隨 stampY 上移)
                 if (rightImg) {
                     const rSize = 300;
                     ctx.drawImage(rightImg, 680, stampY - 80, rSize, rSize); 
                 }
 
-                // 🚀 6. 頁尾資訊 (上移至 1980px，騰出底部的空間)
+                // 6. 頁尾資訊 (避開邊框重疊)
                 const footerY = 1980; 
                 ctx.fillStyle = '#e6e39c';
                 ctx.font = 'bold 36px "Noto Sans TC", sans-serif'; 
@@ -366,13 +379,20 @@
 
             const handleShare = async () => {
                 if (navigator.share && finalImageUrl) {
+                    // 🚀 GA4 事件：追蹤分享按鈕點擊
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'share_card', {
+                            'event_category': 'Social',
+                            'event_label': selectedBlessing
+                        });
+                    }
                     try {
                         const blob = await (await fetch(finalImageUrl)).blob();
                         const file = new File([blob], 'Greeting2026.png', { type: 'image/png' });
                         await navigator.share({ 
                             files: [file], 
                             title: '恭賀新禧！送您一張馬年賀卡！',
-                            text: `恭賀新禧！送上今年的祝福！\n\n邀請您也來製作您的馬年賀卡：https://belovedraod.github.io/HorseYearsCard/`
+                            text: `恭賀新禧！送您一張馬年賀卡！\n\n邀請您也來製作您的馬年賀卡：https://belovedraod.github.io/HorseYearsCard/`
                         });
                     } catch (err) { console.log('分享已取消'); }
                 }
@@ -405,13 +425,7 @@
                             <div key="step-1" className="animate-in fade-in slide-in-from-bottom-8 duration-500 flex-center-col space-y-8 w-full min-h-[400px]">
                                 <div className="w-full bg-white/60 p-6 rounded-[2.5rem] border-2 border-red-100 shadow-sm flex-center-col space-y-4">
                                     <label className="text-xl font-bold text-slate-700 flex items-center gap-2"><Icon name="user" size={24} className="text-red-500" />想要在賀卡上印什麼署名？</label>
-                                    <input 
-                                        type="text" 
-                                        value={userName} 
-                                        onChange={(e) => setUserName(e.target.value)} 
-                                        placeholder="例如：王小明" 
-                                        className="w-full p-4 text-xl bg-white border-2 border-red-200 rounded-2xl focus:outline-none focus:border-red-500 transition-colors shadow-inner text-center" 
-                                    />
+                                    <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="例如：王小明" className="w-full p-4 text-xl bg-white border-2 border-red-200 rounded-2xl focus:outline-none focus:border-red-500 transition-colors shadow-inner text-center" />
                                 </div>
                                 <h2 className="text-2xl font-bold text-slate-800 mb-2 font-serif w-full text-center">請選擇一句喜歡的賀詞：</h2>
                                 <div className="grid grid-cols-1 gap-3 w-full max-w-md">
@@ -423,14 +437,7 @@
                                     <div className="bg-red-50 p-6 rounded-[2.5rem] border-2 border-dashed border-red-200 flex-center-col space-y-4 mt-2 shadow-inner w-full">
                                         <p className="text-lg font-bold text-red-900 w-full text-center">或是你想自己寫祝賀詞（8字內）：</p>
                                         <div className="flex gap-2 w-full flex-col">
-                                            <input 
-                                                type="text" 
-                                                maxLength={9}
-                                                value={customInput}
-                                                onChange={(e) => setCustomInput(e.target.value)}
-                                                placeholder="輸入自訂內容..."
-                                                className="flex-1 p-4 text-lg border-2 border-red-200 rounded-2xl focus:outline-none focus:border-red-500 shadow-sm text-center"
-                                            />
+                                            <input type="text" maxLength={9} value={customInput} onChange={(e) => setCustomInput(e.target.value)} placeholder="輸入自訂內容..." className="flex-1 p-4 text-lg border-2 border-red-200 rounded-2xl focus:outline-none focus:border-red-500 shadow-sm text-center" />
                                             <button onClick={handleCustomConfirm} className="bg-red-600 text-white px-8 rounded-2xl font-bold shadow-md active:scale-95 transition-transform">確定</button>
                                         </div>
                                     </div>
@@ -440,11 +447,7 @@
 
                         {step === 2 && (
                             <div key="step-2" className="animate-in fade-in slide-in-from-bottom-8 duration-500 flex-center-col space-y-8 w-full min-h-[400px]">
-                                <h2 className="text-2xl font-bold text-center text-slate-800 font-serif leading-relaxed px-4">
-                                    為賀年卡挑選一張照片<br/>
-                                    <span className="text-lg text-red-600 font-sans">（賀卡為直式，建議挑選直式照片效果更好唷！）</span>
-                                </h2>
-                                
+                                <h2 className="text-2xl font-bold text-center text-slate-800 font-serif leading-relaxed px-4">為賀年卡挑選一張照片<br/><span className="text-lg text-red-600 font-sans">（賀卡為直式，建議挑選直式照片效果更好唷！）</span></h2>
                                 {!userImage ? (
                                     <div className="relative group mx-auto w-full max-w-sm">
                                         <input type="file" accept="image/*" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
@@ -455,44 +458,16 @@
                                     </div>
                                 ) : (
                                     <div className="w-full flex-center-col space-y-6">
-                                        <div 
-                                            className="crop-wrapper"
-                                            onMouseDown={handleStart}
-                                            onMouseMove={handleMove}
-                                            onMouseUp={handleEnd}
-                                            onMouseLeave={handleEnd}
-                                            onTouchStart={handleStart}
-                                            onTouchMove={handleMove}
-                                            onTouchEnd={handleEnd}
-                                        >
+                                        <div className="crop-wrapper" onMouseDown={handleStart} onMouseMove={handleMove} onMouseUp={handleEnd} onMouseLeave={handleEnd} onTouchStart={handleStart} onTouchMove={handleMove} onTouchEnd={handleEnd}>
                                             <div className="crop-aspect-ratio"></div>
-                                            <img 
-                                                src={userImage} 
-                                                className="crop-image"
-                                                style={{
-                                                    width: '100%',
-                                                    height: 'auto',
-                                                    transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`
-                                                }}
-                                            />
+                                            <img src={userImage} className="crop-image" style={{ width: '100%', height: 'auto', transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})` }} />
                                             <div className="crop-overlay"></div>
                                         </div>
-                                        
                                         <div className="w-full max-w-sm space-y-2 px-4">
-                                            <div className="flex items-center justify-between text-slate-600 font-bold mb-1">
-                                                <span>縮放調整</span>
-                                                <span>{Math.round(scale * 100)}%</span>
-                                            </div>
-                                            <input 
-                                                type="range" 
-                                                min="0.5" max="3" step="0.01" 
-                                                value={scale} 
-                                                onChange={(e) => setScale(parseFloat(e.target.value))}
-                                                className="w-full h-4 bg-red-100 rounded-lg appearance-none cursor-pointer accent-red-600"
-                                            />
+                                            <div className="flex items-center justify-between text-slate-600 font-bold mb-1"><span>縮放調整</span><span>{Math.round(scale * 100)}%</span></div>
+                                            <input type="range" min="0.5" max="3" step="0.01" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-full h-4 bg-red-100 rounded-lg appearance-none cursor-pointer accent-red-600" />
                                             <p className="text-sm text-slate-400 mt-2">可用手指在框內拖曳調整照片位置</p>
                                         </div>
-
                                         <div className="flex gap-4 w-full max-w-sm px-4">
                                             <button onClick={() => setUserImage(null)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-3xl font-bold active:scale-95 shadow-sm">重新挑選</button>
                                             <button onClick={() => setStep(3)} className="flex-[2] py-4 bg-red-600 text-white rounded-3xl font-bold shadow-lg active:scale-95">確定使用此位置</button>
@@ -506,7 +481,6 @@
                         {step === 3 && (
                             <div key="step-3" className="animate-in zoom-in-95 duration-700 flex flex-center-col space-y-10 w-full min-h-[400px]">
                                 <h2 className="text-2xl font-bold text-red-900 flex items-center justify-center gap-2 font-serif w-full text-center"><Icon name="sparkles" size={24} className="text-yellow-600" /> 您的馬年專屬賀卡完成囉！</h2>
-                                
                                 <div className="relative group max-w-[90%] mx-auto w-full flex justify-center">
                                     <div className="relative shadow-2xl rounded-[3rem] overflow-hidden bg-white border-[12px] border-white ring-1 ring-black/5 w-full max-w-[400px]">
                                         {isGenerating ? (
@@ -519,14 +493,13 @@
                                         )}
                                     </div>
                                 </div>
-
                                 <div className="space-y-6 flex flex-center-col w-full px-2">
                                     <div className="w-full max-w-sm bg-[#fefce8] border-2 border-dashed border-[#fde047] rounded-[2.5rem] p-6 text-center space-y-2 shadow-inner flex flex-center-col">
                                         <div className="flex justify-center"><Icon name="mouse-pointer-2" size={32} className="text-[#854d0e] animate-hand" /></div>
                                         <p className="text-[#451a03] text-xl font-bold tracking-wider w-full text-center">【長按上方圖片】即可儲存到相簿</p>
-                                        <p className="text-[#854d0e] text-lg font-medium w-full text-center">儲存後可珍藏與分享！</p>
+                                        <p className="text-[#854d0e] text-lg font-medium w-full text-center">儲存後就可以傳給 LINE 親友囉！</p>
                                     </div>
-                                    <button onClick={handleShare} className="w-full max-w-sm bg-[#449144] text-white py-6 rounded-[2.5rem] text-2xl font-bold shadow-[0_6px_0_0_#2d6a2d] active:shadow-none active:translate-y-1 transition-all flex items-center justify-center gap-3"><Icon name="share-2" size={28} /> 點我直接 LINE/IG 分享</button>
+                                    <button onClick={handleShare} className="w-full max-w-sm bg-[#449144] text-white py-6 rounded-[2.5rem] text-2xl font-bold shadow-[0_6px_0_0_#2d6a2d] active:shadow-none active:translate-y-1 transition-all flex items-center justify-center gap-3"><Icon name="share-2" size={28} /> 直接分享給親友</button>
                                     <button onClick={() => {setStep(1); setUserName(''); setFinalImageUrl(''); setUserImage(null);}} className="text-[#475569] font-bold text-2xl py-4 tracking-[0.1em] hover:text-red-700 transition-colors w-full text-center">再做一張賀年卡</button>
                                 </div>
                             </div>
