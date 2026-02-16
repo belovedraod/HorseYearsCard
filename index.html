@@ -156,12 +156,12 @@
             ];
 
             const handleSelectBlessing = (text) => {
-                // 🚀 GA4 事件：追蹤賀詞點擊
+                // 🚀 GA4 事件：追蹤預設賀詞點擊
                 if (typeof gtag === 'function') {
                     gtag('event', 'select_blessing', {
                         'event_category': 'Engagement',
                         'event_label': text,
-                        'blessing_content': text
+                        'blessing_content': text // 發送具體賀詞內容
                     });
                 }
                 setSelectedBlessing(text);
@@ -170,14 +170,15 @@
 
             const handleCustomConfirm = () => {
                 if (customInput.trim()) {
-                    // 🚀 GA4 事件：追蹤自定義賀詞
+                    // 🚀 GA4 事件：追蹤自定義賀詞文字
                     if (typeof gtag === 'function') {
                         gtag('event', 'custom_blessing_entry', {
                             'event_category': 'Engagement',
-                            'event_label': 'User Custom Text'
+                            'event_label': 'User Custom Text',
+                            'blessing_content': customInput.trim() // 追蹤用戶自訂的文字
                         });
                     }
-                    setSelectedBlessing(customInput);
+                    setSelectedBlessing(customInput.trim());
                     setStep(2);
                 }
             };
@@ -257,7 +258,6 @@
                 ctx.fillStyle = '#fdfbf7'; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // 主要背板與金色框 (對稱設計)
                 ctx.save();
                 ctx.globalAlpha = 0.95; ctx.fillStyle = '#C8102E'; 
                 drawRect(ctx, 40, 50, 920, 2100, 60); ctx.fill(); ctx.restore();
@@ -266,7 +266,6 @@
                 ctx.strokeStyle = 'rgba(253, 230, 138, 0.7)'; ctx.lineWidth = 12; ctx.setLineDash([20, 15]);
                 drawRect(ctx, 70, 80, 860, 2040, 40); ctx.stroke(); ctx.restore();
 
-                // 3. 照片佈局 (1150px 高)
                 if (userImg) {
                     const px = 100, py = 140, pw = 800, ph = 1150;
                     ctx.save(); 
@@ -303,10 +302,8 @@
                 ctx.setLineDash([]);
                 ctx.globalCompositeOperation = 'source-over';
 
-                // 4. 文字佈局
                 ctx.fillStyle = '#FDE68A'; 
                 ctx.textAlign = 'center';
-                
                 ctx.font = 'bold 95px "Noto Sans TC", sans-serif'; 
                 ctx.fillText(selectedBlessing, 500, 1400);
                 
@@ -318,9 +315,7 @@
                     ctx.fillText(`${userName} 敬賀`, 500, 1570); 
                 }
 
-                // 5. 印章與插圖佈局 (上移優化佈局)
                 const stampY = 1780; 
-                
                 if (sealBgImg) {
                     const sSize = 240; 
                     ctx.drawImage(sealBgImg, 500 - sSize/2, stampY - sSize/2, sSize, sSize);
@@ -342,7 +337,6 @@
                     ctx.drawImage(rightImg, 680, stampY - 80, rSize, rSize); 
                 }
 
-                // 6. 頁尾資訊 (避開邊框重疊)
                 const footerY = 1980; 
                 ctx.fillStyle = '#e6e39c';
                 ctx.font = 'bold 36px "Noto Sans TC", sans-serif'; 
@@ -379,11 +373,12 @@
 
             const handleShare = async () => {
                 if (navigator.share && finalImageUrl) {
-                    // 🚀 GA4 事件：追蹤分享按鈕點擊
+                    // 🚀 GA4 事件：追蹤分享按鈕點擊，並記錄該賀卡使用的賀詞
                     if (typeof gtag === 'function') {
                         gtag('event', 'share_card', {
                             'event_category': 'Social',
-                            'event_label': selectedBlessing
+                            'event_label': selectedBlessing,
+                            'blessing_content': selectedBlessing // 追蹤分享時哪句賀詞最受歡迎
                         });
                     }
                     try {
@@ -403,14 +398,14 @@
                     <canvas ref={canvasRef} id="render-canvas" />
 
                     <header className="bg-red-800 text-yellow-100 pt-12 pb-16 px-6 text-center relative shadow-xl overflow-hidden w-full flex-center-col">
-                        <div className="relative z-10 flex flex-center-col gap-2">
+                        <div className="relative z-10 flex-center-col gap-2">
                             <div className="animate-bounce">
                                 <div className="w-32 h-32 flex items-center justify-center overflow-hidden rounded-full bg-white/20 p-2 border-4 border-white/30 shadow-2xl">
                                     <img src={HEADER_IMG_URL} alt="Hero" className="max-w-full max-h-full object-contain" />
                                 </div>
                             </div>
                             <h1 className="text-4xl font-bold tracking-[0.2em] w-full">2026 丙午馬年</h1>
-                            <p className="text-red-100 mt-2 text-xl font-medium tracking-widest bg-white/10 px-6 py-1 rounded-full border border-white/20 backdrop-blur-sm">手繪插畫感拜年賀卡</p>
+                            <p className="text-red-100 mt-2 text-xl font-medium tracking-widest bg-white/10 px-6 py-1 rounded-full border border-white/20 backdrop-blur-sm text-center">手繪插畫感拜年賀卡</p>
                         </div>
                     </header>
 
@@ -469,12 +464,12 @@
                                             <p className="text-sm text-slate-400 mt-2">可用手指在框內拖曳調整照片位置</p>
                                         </div>
                                         <div className="flex gap-4 w-full max-w-sm px-4">
-                                            <button onClick={() => setUserImage(null)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-3xl font-bold active:scale-95 shadow-sm">重新挑選</button>
-                                            <button onClick={() => setStep(3)} className="flex-[2] py-4 bg-red-600 text-white rounded-3xl font-bold shadow-lg active:scale-95">確定使用此位置</button>
+                                            <button onClick={() => setUserImage(null)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-3xl font-bold active:scale-95 shadow-sm text-center">重新挑選</button>
+                                            <button onClick={() => setStep(3)} className="flex-[2] py-4 bg-red-600 text-white rounded-3xl font-bold shadow-lg active:scale-95 text-center">確定使用此位置</button>
                                         </div>
                                     </div>
                                 )}
-                                <button onClick={() => setStep(1)} className="text-slate-400 hover:text-red-700 font-bold text-xl flex items-center justify-center gap-2 mx-auto underline underline-offset-8 transition-colors pt-4"><Icon name="refresh-cw" size={20} /> 重新選賀詞</button>
+                                <button onClick={() => setStep(1)} className="text-slate-400 hover:text-red-700 font-bold text-xl flex items-center justify-center gap-2 mx-auto underline underline-offset-8 transition-colors pt-4 text-center"><Icon name="refresh-cw" size={20} /> 重新選賀詞</button>
                             </div>
                         )}
 
@@ -497,9 +492,9 @@
                                     <div className="w-full max-w-sm bg-[#fefce8] border-2 border-dashed border-[#fde047] rounded-[2.5rem] p-6 text-center space-y-2 shadow-inner flex flex-center-col">
                                         <div className="flex justify-center"><Icon name="mouse-pointer-2" size={32} className="text-[#854d0e] animate-hand" /></div>
                                         <p className="text-[#451a03] text-xl font-bold tracking-wider w-full text-center">【長按上方圖片】即可儲存到相簿</p>
-                                        <p className="text-[#854d0e] text-lg font-medium w-full text-center">儲存後就可以傳給 LINE 親友囉！</p>
+                                        <p className="text-[#854d0e] text-lg font-medium w-full text-center text-center">儲存後就可以傳給 LINE 親友囉！</p>
                                     </div>
-                                    <button onClick={handleShare} className="w-full max-w-sm bg-[#449144] text-white py-6 rounded-[2.5rem] text-2xl font-bold shadow-[0_6px_0_0_#2d6a2d] active:shadow-none active:translate-y-1 transition-all flex items-center justify-center gap-3"><Icon name="share-2" size={28} /> 直接分享給親友</button>
+                                    <button onClick={handleShare} className="w-full max-w-sm bg-[#449144] text-white py-6 rounded-[2.5rem] text-2xl font-bold shadow-[0_6px_0_0_#2d6a2d] active:shadow-none active:translate-y-1 transition-all flex items-center justify-center gap-3 text-center"><Icon name="share-2" size={28} /> 直接分享給親友</button>
                                     <button onClick={() => {setStep(1); setUserName(''); setFinalImageUrl(''); setUserImage(null);}} className="text-[#475569] font-bold text-2xl py-4 tracking-[0.1em] hover:text-red-700 transition-colors w-full text-center">再做一張賀年卡</button>
                                 </div>
                             </div>
@@ -508,7 +503,7 @@
 
                     <footer className="mt-16 px-8 max-w-xl mx-auto opacity-70 text-center space-y-6 pb-20 w-full flex-center-col">
                         <div className="h-px bg-slate-200 w-full"></div>
-                        <p className="text-slate-500 font-light text-xl italic tracking-widest w-full text-center">2026 丙午馬年 · 祥馬獻瑞 · 馬到成功</p>
+                        <p className="text-slate-500 font-light text-xl italic tracking-widest w-full text-center text-center">2026 丙午馬年 · 祥馬獻瑞 · 馬到成功</p>
                         <div className="text-slate-400 font-light text-xl space-y-1 w-full text-center">
                             <p>© 2026 愛盟家庭文教基金會</p>
                             <p>為愛學習持續練習，是一件幸福的事</p>
