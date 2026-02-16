@@ -77,7 +77,6 @@
             text-align: center;
         }
 
-        /* 照片預覽裁切框 */
         .crop-wrapper {
             width: 100%;
             max-width: 320px;
@@ -90,7 +89,7 @@
             touch-action: none;
         }
         .crop-aspect-ratio {
-            padding-bottom: 143.75%; /* 1150 / 800 */
+            padding-bottom: 143.75%; 
         }
         .crop-image {
             position: absolute;
@@ -115,9 +114,6 @@
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
 
-        // ============================================================
-        // 🖼️ 圖片連結定義區
-        // ============================================================
         const HEADER_IMG_URL = "https://raw.githubusercontent.com/belovedraod/HorseYearsCard/main/new_horse.png"; 
         const CENTER_SEAL_URL = "https://img.freepik.com/free-vector/polygonal-shape-collection_23-2148197711.jpg"; 
         const LEFT_DECO_URL = "https://raw.githubusercontent.com/belovedraod/HorseYearsCard/main/new_horse-left.png"; 
@@ -138,13 +134,10 @@
             const [selectedBlessing, setSelectedBlessing] = useState('');
             const [customInput, setCustomInput] = useState('');
             const [userImage, setUserImage] = useState(null);
-            
-            // 照片編輯狀態
             const [scale, setScale] = useState(1);
             const [position, setPosition] = useState({ x: 0, y: 0 });
             const [isDragging, setIsDragging] = useState(false);
             const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-            
             const [isGenerating, setIsGenerating] = useState(false);
             const [finalImageUrl, setFinalImageUrl] = useState('');
             const canvasRef = useRef(null);
@@ -156,12 +149,11 @@
             ];
 
             const handleSelectBlessing = (text) => {
-                // 🚀 GA4 事件：追蹤預設賀詞點擊
                 if (typeof gtag === 'function') {
                     gtag('event', 'select_blessing', {
                         'event_category': 'Engagement',
                         'event_label': text,
-                        'blessing_content': text // 發送具體賀詞內容
+                        'blessing_content': text 
                     });
                 }
                 setSelectedBlessing(text);
@@ -170,12 +162,11 @@
 
             const handleCustomConfirm = () => {
                 if (customInput.trim()) {
-                    // 🚀 GA4 事件：追蹤自定義賀詞文字
                     if (typeof gtag === 'function') {
                         gtag('event', 'custom_blessing_entry', {
                             'event_category': 'Engagement',
                             'event_label': 'User Custom Text',
-                            'blessing_content': customInput.trim() // 追蹤用戶自訂的文字
+                            'blessing_content': customInput.trim()
                         });
                     }
                     setSelectedBlessing(customInput.trim());
@@ -216,7 +207,6 @@
                         setIsGenerating(true);
                         const canvas = canvasRef.current;
                         const ctx = canvas.getContext('2d');
-                        
                         const loadImage = (src) => {
                             return new Promise((resolve) => {
                                 const img = new Image();
@@ -234,12 +224,9 @@
                                 loadImage(RIGHT_DECO_URL),
                                 loadImage(CENTER_SEAL_URL)
                             ]);
-
                             drawFinalCard(ctx, canvas, userImg, leftImg, rightImg, sealBgImg);
-                            
                             setTimeout(() => {
-                                const dataUrl = canvas.toDataURL('image/png');
-                                setFinalImageUrl(dataUrl);
+                                setFinalImageUrl(canvas.toDataURL('image/png'));
                                 setIsGenerating(false);
                             }, 1500);
                         } catch (error) {
@@ -254,7 +241,6 @@
             const drawFinalCard = (ctx, canvas, userImg, leftImg, rightImg, sealBgImg) => {
                 canvas.width = 1000;
                 canvas.height = 2200;
-
                 ctx.fillStyle = '#fdfbf7'; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
@@ -268,76 +254,54 @@
 
                 if (userImg) {
                     const px = 100, py = 140, pw = 800, ph = 1150;
-                    ctx.save(); 
-                    drawRect(ctx, px, py, pw, ph, 50); 
-                    ctx.clip(); 
-                    
-                    const baseWidth = userImg.width;
-                    const baseHeight = userImg.height;
-                    const imgRatio = baseWidth / baseHeight;
-                    const targetRatio = pw / ph;
-                    
+                    ctx.save(); drawRect(ctx, px, py, pw, ph, 50); ctx.clip(); 
+                    const baseWidth = userImg.width, baseHeight = userImg.height;
+                    const imgRatio = baseWidth / baseHeight, targetRatio = pw / ph;
                     let drawW, drawH;
-                    if (imgRatio > targetRatio) { 
-                        drawH = ph; drawW = baseWidth * (ph / baseHeight); 
-                    } else { 
-                        drawW = pw; drawH = baseHeight * (pw / baseWidth); 
-                    }
-                    
-                    const previewBoxWidth = 320; 
-                    const scaleFactor = pw / previewBoxWidth;
-                    const centerX = px + pw / 2;
-                    const centerY = py + ph / 2;
-                    
+                    if (imgRatio > targetRatio) { drawH = ph; drawW = baseWidth * (ph / baseHeight); }
+                    else { drawW = pw; drawH = baseHeight * (pw / baseWidth); }
+                    const previewBoxWidth = 320, scaleFactor = pw / previewBoxWidth;
+                    const centerX = px + pw / 2, centerY = py + ph / 2;
                     ctx.translate(centerX + position.x * scaleFactor, centerY + position.y * scaleFactor);
                     ctx.scale(scale, scale);
                     ctx.drawImage(userImg, -drawW / 2, -drawH / 2, drawW, drawH);
-                    
                     ctx.restore(); 
                 }
 
                 ctx.setTransform(1, 0, 0, 1, 0, 0); 
-                ctx.beginPath();
-                ctx.globalAlpha = 1.0;
-                ctx.setLineDash([]);
-                ctx.globalCompositeOperation = 'source-over';
-
-                ctx.fillStyle = '#FDE68A'; 
-                ctx.textAlign = 'center';
+                ctx.beginPath(); ctx.globalAlpha = 1.0; ctx.setLineDash([]); ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = '#FDE68A'; ctx.textAlign = 'center';
                 ctx.font = 'bold 95px "Noto Sans TC", sans-serif'; 
                 ctx.fillText(selectedBlessing, 500, 1400);
-                
                 ctx.font = 'bold 44px "Noto Sans TC", sans-serif'; 
                 ctx.fillText(`2026 丙午馬年`, 500, 1480);
-                
                 if (userName) { 
                     ctx.font = 'bold 52px "Noto Sans TC", sans-serif'; 
                     ctx.fillText(`${userName} 敬賀`, 500, 1570); 
                 }
 
-                const stampY = 1780; 
+                // 🚀 上移佈局點：1750px (印章)
+                const stampY = 1750; 
                 if (sealBgImg) {
                     const sSize = 240; 
                     ctx.drawImage(sealBgImg, 500 - sSize/2, stampY - sSize/2, sSize, sSize);
                 } else {
                     drawSealShape(ctx, 500, stampY, 75, '#FDE68A');
                 }
-
                 const luckText = ["祥馬獻瑞", "馬到成功", "龍馬精神", "一馬當先"].find(t => !selectedBlessing.includes(t)) || "祥馬獻瑞";
                 ctx.fillStyle = '#BE123C'; ctx.font = 'bold 36px "Noto Sans TC", sans-serif';
                 ctx.fillText(luckText[0], 480, stampY - 5); ctx.fillText(luckText[1], 520, stampY - 5);
                 ctx.fillText(luckText[2], 480, stampY + 35); ctx.fillText(luckText[3], 520, stampY + 35);
 
                 if (leftImg) {
-                    const lSize = 360;
-                    ctx.drawImage(leftImg, 60, stampY - 220, lSize, lSize);
+                    const lSize = 360; ctx.drawImage(leftImg, 60, stampY - 220, lSize, lSize);
                 }
                 if (rightImg) {
-                    const rSize = 300;
-                    ctx.drawImage(rightImg, 680, stampY - 80, rSize, rSize); 
+                    const rSize = 300; ctx.drawImage(rightImg, 680, stampY - 80, rSize, rSize); 
                 }
 
-                const footerY = 1980; 
+                // 🚀 上移頁尾文字：1950px
+                const footerY = 1950; 
                 ctx.fillStyle = '#e6e39c';
                 ctx.font = 'bold 36px "Noto Sans TC", sans-serif'; 
                 ctx.fillText("© 2026 愛盟家庭文教基金會", 500, footerY);
@@ -347,15 +311,11 @@
 
             function drawRect(ctx, x, y, w, h, r) {
                 ctx.beginPath();
-                ctx.moveTo(x + r, y);
-                ctx.lineTo(x + w - r, y);
+                ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
                 ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-                ctx.lineTo(x + w, y + h - r);
-                ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-                ctx.lineTo(x + r, y + h);
-                ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-                ctx.lineTo(x, y + r);
-                ctx.quadraticCurveTo(x, y, x + r, y);
+                ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
                 ctx.closePath();
             }
 
@@ -364,8 +324,7 @@
                 for(let i=0; i<8; i++) {
                     const angle = (i/8) * Math.PI * 2;
                     const rr = r + (Math.random() * 8 - 4);
-                    const px = x + Math.cos(angle) * rr;
-                    const py = y + Math.sin(angle) * rr;
+                    const px = x + Math.cos(angle) * rr, py = y + Math.sin(angle) * rr;
                     if(i===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
                 }
                 ctx.closePath(); ctx.fill(); ctx.restore();
@@ -373,12 +332,11 @@
 
             const handleShare = async () => {
                 if (navigator.share && finalImageUrl) {
-                    // 🚀 GA4 事件：追蹤分享按鈕點擊，並記錄該賀卡使用的賀詞
                     if (typeof gtag === 'function') {
                         gtag('event', 'share_card', {
                             'event_category': 'Social',
                             'event_label': selectedBlessing,
-                            'blessing_content': selectedBlessing // 追蹤分享時哪句賀詞最受歡迎
+                            'blessing_content': selectedBlessing 
                         });
                     }
                     try {
@@ -398,7 +356,7 @@
                     <canvas ref={canvasRef} id="render-canvas" />
 
                     <header className="bg-red-800 text-yellow-100 pt-12 pb-16 px-6 text-center relative shadow-xl overflow-hidden w-full flex-center-col">
-                        <div className="relative z-10 flex-center-col gap-2">
+                        <div className="relative z-10 flex flex-center-col gap-2">
                             <div className="animate-bounce">
                                 <div className="w-32 h-32 flex items-center justify-center overflow-hidden rounded-full bg-white/20 p-2 border-4 border-white/30 shadow-2xl">
                                     <img src={HEADER_IMG_URL} alt="Hero" className="max-w-full max-h-full object-contain" />
@@ -425,7 +383,7 @@
                                 <h2 className="text-2xl font-bold text-slate-800 mb-2 font-serif w-full text-center">請選擇一句喜歡的賀詞：</h2>
                                 <div className="grid grid-cols-1 gap-3 w-full max-w-md">
                                     {presetBlessings.map((blessing, idx) => (
-                                        <button key={idx} onClick={() => handleSelectBlessing(blessing)} className="w-full p-5 bg-white border-2 border-red-100 rounded-3xl text-xl font-bold text-red-800 hover:bg-red-50 hover:border-red-400 transition-all active:scale-95 shadow-sm text-center">
+                                        <button key={idx} onClick={() => handleSelectBlessing(blessing)} className="w-full p-5 bg-white border-2 border-red-100 rounded-3xl text-xl font-bold text-red-800 hover:bg-red-50 hover:border-red-400 transition-all active:scale-95 shadow-sm">
                                             {blessing}
                                         </button>
                                     ))}
@@ -461,7 +419,7 @@
                                         <div className="w-full max-w-sm space-y-2 px-4">
                                             <div className="flex items-center justify-between text-slate-600 font-bold mb-1"><span>縮放調整</span><span>{Math.round(scale * 100)}%</span></div>
                                             <input type="range" min="0.5" max="3" step="0.01" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-full h-4 bg-red-100 rounded-lg appearance-none cursor-pointer accent-red-600" />
-                                            <p className="text-sm text-slate-400 mt-2">可用手指在框內拖曳調整照片位置</p>
+                                            <p className="text-sm text-slate-400 mt-2 text-center">可用手指在框內拖曳調整照片位置</p>
                                         </div>
                                         <div className="flex gap-4 w-full max-w-sm px-4">
                                             <button onClick={() => setUserImage(null)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-3xl font-bold active:scale-95 shadow-sm text-center">重新挑選</button>
